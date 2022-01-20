@@ -12,8 +12,6 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from tqdm import tqdm
  
-
-sys.path.append('/home/dogoulis/WORKSPACE/datasets')
 from pytorch_dataset import dataset2
 
 
@@ -52,6 +50,11 @@ parser.add_argument('-gq', '--giqa', type=bool, default=CONFIG['GIQA'],
 parser.add_argument('-d', '--device', default=CONFIG['device'],
                 metavar='device', help='device used during training')
 
+parser.add_argument('--train_dir', metavar='train-dir', help='training dataset path for csv')
+
+parser.add_argument('--valid_dir', metavar='valid-dir', help='validation dataset path for csv')
+
+parser.add_argument('--save_dir', metavar='save-dir', help='save directory path')
 
 args = parser.parse_args()
 CONFIG.update(vars(args))
@@ -180,8 +183,10 @@ def main():
     
     # set the paths for training
         
-    dataset_train = '/home/dogoulis/WORKSPACE/datasets/CSV/train_10k.csv'
-    dataset_val =  '/home/dogoulis/WORKSPACE/datasets/CSV/validation_dataset.csv'
+    #dataset_train = '/home/dogoulis/WORKSPACE/datasets/CSV/train_10k.csv'
+    dataset_train = args.train_dir
+    #dataset_val =  '/home/dogoulis/WORKSPACE/datasets/CSV/validation_dataset.csv'
+    dataset_val = args.valid_dir
 
     train_dataset = dataset2(dataset_train ,transforms[0])
 
@@ -200,7 +205,9 @@ def main():
 
     # directory:
 
-    save_dir = './'
+    #save_dir = './'
+
+    save_dir = args.save_dir
     
     
     n_epochs = 1
