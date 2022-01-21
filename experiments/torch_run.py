@@ -1,7 +1,5 @@
 import os
-import sys 
 import argparse
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -11,9 +9,7 @@ import timm
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from tqdm import tqdm
- 
-from pytorch_dataset import dataset2
-
+import pytorch_dataset
 
 # experiment configuration
 
@@ -188,9 +184,9 @@ def main():
     #dataset_val =  '/home/dogoulis/WORKSPACE/datasets/CSV/validation_dataset.csv'
     dataset_val = args.valid_dir
 
-    train_dataset = dataset2(dataset_train ,transforms[0])
+    train_dataset = pytorch_dataset.dataset2(dataset_train ,transforms[0])
 
-    val_dataset = dataset2(dataset_val, transforms[1])
+    val_dataset = pytorch_dataset.dataset2(dataset_val, transforms[1])
 
     # defining data loaders:
 
@@ -220,7 +216,7 @@ def main():
         val_epoch_loss, _, _ = validate_epoch(model, val_dataloader=val_dataloader, CONFIG=CONFIG,
                                  criterion=criterion)
 
-        torch.save(model.cpu().state_dict(), os.path.join(save_dir, 'epoch-{}.pt'.format(epoch)))
+        torch.save(model.cpu().state_dict(), os.path.join(save_dir, f'epoch-{epoch}.pt'))
 
         print(train_epoch_loss, val_epoch_loss)
 
