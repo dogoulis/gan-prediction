@@ -1,1 +1,0 @@
-{"test-loss": 0.001125105243879716, "_runtime": 106, "_timestamp": 1642776415, "_step": 2, "Accuracy": 1.0, "F1": 1.0, "Precision": 1.0, "Recall": 1.0, "conf_mat": [[1000, 0], [0, 1000]], "_wandb": {"runtime": 106}}
