@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "evaluation.py", line 200, in <module>
+    main()
+  File "evaluation.py", line 182, in main
+    criterion = nn.BCE()
+AttributeError: module 'torch.nn' has no attribute 'BCE'

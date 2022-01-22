@@ -1,0 +1,64 @@
+
+Testing
+  0%|                                                                                           | 0/2000 [00:00<?, ?it/s]/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/nn/functional.py:718: UserWarning: Named tensors and all their associated APIs are an experimental feature and subject to change. Please do not use them for anything important until they are released as stable. (Triggered internally at  /opt/conda/conda-bld/pytorch_1623448278899/work/c10/core/TensorImpl.h:1156.)
+  return torch.max_pool2d(input, kernel_size, stride, padding, dilation, ceil_mode)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 99%|███████████████████████████████████████████████████████████████████████████████▍| 1987/2000 [01:33<00:00, 19.32it/s]
+100%|████████████████████████████████████████████████████████████████████████████████| 2000/2000 [01:34<00:00, 21.23it/s]
+Traceback (most recent call last):
+  File "evaluation.py", line 200, in <module>
+    main()
+  File "evaluation.py", line 193, in main
+    log_metrics(y_true=y_true, y_pred=y_pred)
+  File "evaluation.py", line 113, in log_metrics
+    test_acc = accuracy_score(y_true, y_pred)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/sklearn/metrics/_classification.py", line 185, in accuracy_score
+    y_type, y_true, y_pred = _check_targets(y_true, y_pred)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/sklearn/metrics/_classification.py", line 89, in _check_targets
+    raise ValueError("Classification metrics can't handle a mix of {0} "
+ValueError: Classification metrics can't handle a mix of binary and continuous targets

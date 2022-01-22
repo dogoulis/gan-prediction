@@ -1,0 +1,92 @@
+  0%|                                                                                           | 0/2000 [00:00<?, ?it/s]/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/nn/functional.py:718: UserWarning: Named tensors and all their associated APIs are an experimental feature and subject to change. Please do not use them for anything important until they are released as stable. (Triggered internally at  /opt/conda/conda-bld/pytorch_1623448278899/work/c10/core/TensorImpl.h:1156.)
+  return torch.max_pool2d(input, kernel_size, stride, padding, dilation, ceil_mode)
+  1%|▍                                                                                 | 12/2000 [00:00<02:02, 16.20it/s]
+Testing
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+
+  2%|█▊                                                                                | 45/2000 [00:02<02:18, 14.12it/s]
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+  3%|██▋                                                                               | 67/2000 [00:04<01:57, 16.39it/s]
+Traceback (most recent call last):
+  File "evaluation.py", line 199, in <module>
+    main()
+  File "evaluation.py", line 185, in main
+    test_loss, y_true, y_pred = testing(model=model, dataloader=test_dataloader, criterion=criterion)
+  File "evaluation.py", line 80, in testing
+    for data in tqdm(dataloader):
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/tqdm/std.py", line 1185, in __iter__
+    for obj in iterable:
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 521, in __next__
+    data = self._next_data()
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 561, in _next_data
+    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/utils/data/_utils/fetch.py", line 44, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/utils/data/_utils/fetch.py", line 44, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/home/dogoulis/WORKSPACE/gan-prediction/experiments/pytorch_dataset.py", line 24, in __getitem__
+    image = cv2.imread(self.imgs[idx])
+KeyboardInterrupt
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])
+torch.Size([1])

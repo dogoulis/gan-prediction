@@ -1,0 +1,13 @@
+
+Testing
+  0%|                                                                                           | 0/2000 [00:00<?, ?it/s]/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/nn/functional.py:718: UserWarning: Named tensors and all their associated APIs are an experimental feature and subject to change. Please do not use them for anything important until they are released as stable. (Triggered internally at  /opt/conda/conda-bld/pytorch_1623448278899/work/c10/core/TensorImpl.h:1156.)
+  return torch.max_pool2d(input, kernel_size, stride, padding, dilation, ceil_mode)
+  0%|                                                                                           | 0/2000 [00:00<?, ?it/s]
+Traceback (most recent call last):
+  File "evaluation.py", line 191, in <module>
+    main()
+  File "evaluation.py", line 180, in main
+    test_loss, y_true, y_pred = testing(model=model, dataloader=test_dataloader, criterion=criterion)
+  File "evaluation.py", line 90, in testing
+    outputs = outputs.cpu.numpy()
+AttributeError: 'builtin_function_or_method' object has no attribute 'numpy'

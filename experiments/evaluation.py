@@ -9,9 +9,8 @@ import timm
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from tqdm import tqdm
-import pytorch_dataset
-import pandas as pd
 import numpy as np
+from dataset import pytorch_dataset
 
 # testing configuration
 

@@ -9,7 +9,7 @@ import timm
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from tqdm import tqdm
-import pytorch_dataset
+from dataset import pytorch_dataset
 
 # experiment configuration
 

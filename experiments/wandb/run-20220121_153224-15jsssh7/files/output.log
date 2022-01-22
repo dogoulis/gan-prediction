@@ -1,0 +1,26 @@
+Traceback (most recent call last):
+  File "evaluation.py", line 191, in <module>
+    main()
+  File "evaluation.py", line 168, in main
+    test_dataset = pytorch_dataset.dataset2(dataset_test, transforms[1])
+  File "/home/dogoulis/WORKSPACE/gan-prediction/experiments/pytorch_dataset.py", line 13, in __init__
+    self.dataset= pd.read_csv(dataset_path)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/pandas/util/_decorators.py", line 311, in wrapper
+    return func(*args, **kwargs)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/pandas/io/parsers/readers.py", line 586, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/pandas/io/parsers/readers.py", line 482, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/pandas/io/parsers/readers.py", line 811, in __init__
+    self._engine = self._make_engine(self.engine)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/pandas/io/parsers/readers.py", line 1040, in _make_engine
+    return mapping[engine](self.f, **self.options)  # type: ignore[call-arg]
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/pandas/io/parsers/c_parser_wrapper.py", line 51, in __init__
+    self._open_handles(src, kwds)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/pandas/io/parsers/base_parser.py", line 222, in _open_handles
+    self.handles = get_handle(
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/pandas/io/common.py", line 609, in get_handle
+    ioargs = _get_filepath_or_buffer(
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/pandas/io/common.py", line 396, in _get_filepath_or_buffer
+    raise ValueError(msg)
+ValueError: Invalid file path or buffer object type: <class 'NoneType'>
