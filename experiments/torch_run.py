@@ -89,10 +89,10 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
 
         y = y.unsqueeze(1)
         optimizer.zero_grad()
-        outputs = model(x)
 
-
-        loss = criterion(outputs,y)
+        with torch.autocast(device_type=CONFIG['device']):
+            outputs = model(x)
+            loss = criterion(outputs,y)
 
         if batch%10 == 0:
             wandb.log({'train-step-loss':loss})
