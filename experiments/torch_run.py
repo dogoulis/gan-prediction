@@ -90,7 +90,7 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
         y = y.unsqueeze(1)
         optimizer.zero_grad()
 
-        with torch.autocast(device_type=CONFIG['device']):
+        with torch.cuda.amp.autocast(device_type=CONFIG['device']):
             outputs = model(x)
             loss = criterion(outputs,y)
 
