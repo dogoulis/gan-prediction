@@ -3,6 +3,15 @@ import torch
 import torch.nn as nn
 import argparse
 import timm
+from PIL import Image
+from torchvision import transforms
+from captum.attr import IntegratedGradients
+from captum.attr import GradientShap
+from captum.attr import Occlusion
+from captum.attr import NoiseTunnel
+from captum.attr import visualization as viz
+from matplotlib.colors import LinearSegmentedColormap
+import numpy as np
 
 
 # parser:
@@ -11,6 +20,9 @@ parser = argparse.ArgumentParser(description='Testing arguments')
 
 parser.add_argument('--weights_dir',
                     metavar='weights_dir', help='Directory of weights')
+
+parser.add_argument('--img', 
+                    metavar='img_dir', help='Path of the image')
 
 
 args = parser.parse_args()
@@ -44,23 +56,48 @@ def main():
     # load weights:
 
     model.load_state_dict(torch.load(args.weights_dir))
-    
-    # GradCam Method:
 
-    grad_cam = captum.attr.GuidedGradCam(model, layer=model._modules['model'].layer4[-1].conv3)
+    # define transforms
 
-    #set an input:
+    transform = transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToTensor()
+    ])
 
-    img = torch.randn(2, 3, 32, 32, requires_grad=True)
+    # take a random image:
 
-    # calculate the attribution:
+    img_dir = args.img
 
-    attribution = grad_cam.attribute(input, 1)
+    img = Image.open(img_dir)
 
-    # print
+    transformed_img = transform(img)
 
-    print(attribution)
-    
+    input = transformed_img.unsqueeze(0)
+
+    # pass the image to the model:
+
+    output = model(input)
+
+    # integrated gradients model:
+
+    integrated_gradients = IntegratedGradients(model)
+
+    attributions_ig = integrated_gradients.attribute(input)
+
+    default_cmap = LinearSegmentedColormap.from_list('custom blue',
+                                                     [(0, '#ffffff'),
+                                                      (0.25, '#000000'),
+                                                         (1, '#000000')], N=256)
+
+    _ = viz.visualize_image_attr(np.transpose(attributions_ig.squeeze().cpu().detach().numpy(), (1, 2, 0)),
+                                 np.transpose(transformed_img.squeeze(
+                                 ).cpu().detach().numpy(), (1, 2, 0)),
+                                 method='heat_map',
+                                 cmap=default_cmap,
+                                 show_colorbar=True,
+                                 sign='positive',
+                                 outlier_perc=1)
 
 
 if __name__ == '__main__':
