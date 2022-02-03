@@ -77,6 +77,8 @@ class resnet50(nn.Module):
 def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
 
     print('Training')
+
+    model.to(CONFIG['device'])
     model.train()
     running_loss = 0.0
 
@@ -115,6 +117,7 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
 def validate_epoch(model, val_dataloader, CONFIG, criterion):
     print('Validating')
 
+    model.to(CONFIG['device'])
     model.eval()
 
     running_loss = 0.0
@@ -155,12 +158,6 @@ def main():
     # initialize model:
 
     model = resnet50()
-
-    # set the device
-
-    device = torch.device(CONFIG['device'] if torch.cuda.is_available() else 'cpu')
-
-    model.to(device)
 
     # defining transforms
     '''
