@@ -10,6 +10,7 @@ import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from tqdm import tqdm
 from dataset import pytorch_dataset
+from torchvision import transforms
 
 # experiment configuration
 
@@ -21,7 +22,7 @@ CONFIG = {
     'learning_rate': 1e-3,
     'weight_decay': 1e-5,
     'Model-Type': 'resnet',
-    'GIQA': True,
+    'GIQA': 'yes',
     'device':'cuda'
 
 }
@@ -40,7 +41,7 @@ parser.add_argument('-lr', '--learning_rate', type=float,default=CONFIG['learnin
 parser.add_argument('-wd', '--weight_decay', type=float,default=CONFIG['weight_decay'],
                     metavar='Weight Decay', help='Weight decay of the optimizer')
 
-parser.add_argument('-gq', '--giqa', type=bool, default=CONFIG['GIQA'],
+parser.add_argument('-gq', '--giqa', default=CONFIG['GIQA'],
                 metavar='GIQA', help='Train with Giqa')
 
 parser.add_argument('-d', '--device', default=CONFIG['device'],
@@ -149,7 +150,7 @@ def main():
 
     # initialize weights and biases:
 
-    wandb.init(project='test-test', config=CONFIG)
+    wandb.init(project='torch-run-.61-10k', config=CONFIG)
 
     # initialize model:
 
@@ -162,7 +163,7 @@ def main():
     model.to(device)
 
     # defining transforms
-
+    '''
     transforms = [A.Compose([
         # resize
             A.augmentations.geometric.resize.Resize(256, 256),
@@ -176,17 +177,30 @@ def main():
             A.Normalize(),
             ToTensorV2()
     ])]
+    '''
+
+    normalization = transforms.Normalize(
+                mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+            )
+    transforms = transforms.Compose(
+                [
+                    transforms.RandomResizedCrop(image_size, scale=(0.7, 1.0)),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),
+                    normalization,
+                ]
+            )
     
     # set the paths for training
         
-    #dataset_train = '/home/dogoulis/WORKSPACE/datasets/CSV/train_10k.csv'
+    
     dataset_train = args.train_dir
-    #dataset_val =  '/home/dogoulis/WORKSPACE/datasets/CSV/validation_dataset.csv'
+    
     dataset_val = args.valid_dir
 
-    train_dataset = pytorch_dataset.dataset2(dataset_train ,transforms[0])
+    train_dataset = pytorch_dataset.dataset2(dataset_train ,transforms)
 
-    val_dataset = pytorch_dataset.dataset2(dataset_val, transforms[1])
+    val_dataset = pytorch_dataset.dataset2(dataset_val, transforms)
 
     # defining data loaders:
 
@@ -201,12 +215,10 @@ def main():
 
     # directory:
 
-    #save_dir = './'
-
     save_dir = args.save_dir
     
     
-    n_epochs = 1
+    n_epochs = 30
 
 
     for epoch in range(n_epochs):
