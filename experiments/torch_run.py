@@ -122,7 +122,7 @@ def validate_epoch(model, val_dataloader, CONFIG, criterion):
 
     running_loss = 0.0
 
-    batch = 0
+    correct = 0
     
     with torch.no_grad():
 
@@ -130,20 +130,20 @@ def validate_epoch(model, val_dataloader, CONFIG, criterion):
 
             x, y = data[0].to(CONFIG['device']), data[1].to(CONFIG['device'])
             y = y.unsqueeze(1)
-
-            batch += 1
-
              
             outputs = model(x)
             loss = criterion(outputs, y)
-            if batch%10 == 0:
-                wandb.log({'valid-step-loss':loss})
-            
+            #loss calculation over batch
             running_loss += loss.item()
+            #accuracy calcilation over batch
+            outputs = torch.round(outputs)
+            correct_ = (outputs == y).sum().item()
+            correct += correct_
 
-        
         val_loss = running_loss/len(val_dataloader.dataset)
         wandb.log({'valdiation-epoch-loss':val_loss})
+        acc = 100. * correct/len(val_dataloader.dataset)
+        wandb.log({'validation-accuracy':acc})
 
         return val_loss, data, outputs
 
