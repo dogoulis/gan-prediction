@@ -6,11 +6,11 @@ from torch.utils.data.dataloader import DataLoader
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
 import wandb
 import timm
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
+from torchvision import transforms
 from tqdm import tqdm
 import numpy as np
 from dataset import pytorch_dataset
+import pandas as pd
 
 # testing configuration
 
@@ -130,8 +130,8 @@ def to_numpy(y_true, y_pred):
 def log_conf_matrix(y_true, y_pred):
 
     conf_matrix = confusion_matrix(y_true=y_true, y_pred=y_pred)
-    cf_matrix = wandb.Table(columns=['0', '1'], data=[
-                            conf_matrix[0], conf_matrix[1]])
+    conf_matrix = pd.DataFrame(data=conf_matrix, columns=['A', 'B'])
+    cf_matrix = wandb.Table(dataframe=conf_matrix)
     wandb.log({'conf_mat': cf_matrix})
 
 # main def:
@@ -160,19 +160,18 @@ def main():
 
     # defining transforms:
 
-    transforms = [A.Compose([
-        # resize
-        A.augmentations.geometric.resize.Resize(256, 256),
-        # center crop:
-        A.augmentations.crops.transforms.CenterCrop(224, 224),
-        A.Normalize(),
-        ToTensorV2()]),
-
-        A.Compose([A.augmentations.geometric.resize.Resize(256, 256),
-                   A.augmentations.crops.transforms.CenterCrop(224, 224),
-                   A.Normalize(),
-                   ToTensorV2()
-                   ])]
+    normalization = transforms.Normalize(
+                mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+            )
+    transforms = transforms.Compose(
+                [
+                    transforms.RandomResizedCrop(image_size, scale=(0.7, 1.0)),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),
+                    normalization,
+                ]
+            )
+    
 
     # define test dir:
 
