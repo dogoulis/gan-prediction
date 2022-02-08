@@ -141,7 +141,7 @@ def main():
 
     # initialize w&b
 
-    wandb.init(project='test-test', config=CONFIG)
+    wandb.init(project='TESTING', config=CONFIG)
 
     # initialize model:
 
