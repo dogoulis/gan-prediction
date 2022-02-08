@@ -206,7 +206,7 @@ def main():
 
     # setting the model:
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-5)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.wd)
 
     criterion = nn.BCEWithLogitsLoss()
 
