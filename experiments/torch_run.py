@@ -34,6 +34,9 @@ parser = argparse.ArgumentParser(description='Training arguments')
 parser.add_argument('-m', '--model',
                 metavar='model', help='which model to use in training: resnet50, vit-large, vit-base')
 
+parser.add_argument('-e', '--epochs', type=int,
+                metavar='epochs', help='Number of epochs')
+
 parser.add_argument('-b', '--batch_size', type=int, default=CONFIG['batch_size'],
                 metavar='batch_size', help='input batch size for training (default: 32)')
 
@@ -206,7 +209,7 @@ def main():
     save_dir = args.save_dir
     
     
-    n_epochs = 1
+    n_epochs = args.epochs
 
 
     for epoch in range(n_epochs):
