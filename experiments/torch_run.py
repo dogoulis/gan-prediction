@@ -34,7 +34,7 @@ CONFIG = {
 parser = argparse.ArgumentParser(description='Training arguments')
 
 parser.add_argument('-m', '--model',
-                metavar='model', help='which model to use in training')
+                metavar='model', help='which model to use in training: resnet50, vit-large, vit-base')
 
 parser.add_argument('-b', '--batch_size', type=int, default=CONFIG['batch_size'],
                 metavar='batch_size', help='input batch size for training (default: 32)')
