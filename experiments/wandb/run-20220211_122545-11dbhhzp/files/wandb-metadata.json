@@ -1,0 +1,37 @@
+{
+    "os": "Linux-5.13.0-27-generic-x86_64-with-glibc2.10",
+    "python": "3.8.8",
+    "heartbeatAt": "2022-02-11T10:25:46.907977",
+    "startedAt": "2022-02-11T10:25:45.997028",
+    "docker": null,
+    "gpu": "NVIDIA GeForce RTX 3060",
+    "gpu_count": 1,
+    "cpu_count": 16,
+    "cuda": null,
+    "args": [
+        "-m",
+        "vit-base",
+        "-b",
+        "64",
+        "-gq",
+        "no",
+        "--train_dir",
+        "/home/dogoulis/WORKSPACE/gan-prediction/data/train.csv",
+        "--valid_dir",
+        "/home/dogoulis/WORKSPACE/gan-prediction/data/valid.csv",
+        "--save_dir",
+        "/home/dogoulis/WORKSPACE/gan-prediction/checkpoints/experiment/"
+    ],
+    "state": "running",
+    "program": "torch_run.py",
+    "codePath": "experiments/torch_run.py",
+    "git": {
+        "remote": "https://github.com/dogoulis/gan-prediction.git",
+        "commit": "0bd21a2a1e9c21f0b46ad2c3e50708877fcbce42"
+    },
+    "email": "pantelisdog@gmail.com",
+    "root": "/home/dogoulis/WORKSPACE/gan-prediction",
+    "host": "iti-846",
+    "username": "dogoulis",
+    "executable": "/home/dogoulis/anaconda3/bin/python"
+}

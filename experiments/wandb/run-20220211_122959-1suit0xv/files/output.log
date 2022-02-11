@@ -1,0 +1,24 @@
+
+Training
+Traceback (most recent call last):
+  File "torch_run.py", line 224, in <module>
+    main()
+  File "torch_run.py", line 214, in main
+    train_epoch_loss, _, _ = train_epoch(model, train_dataloader=train_dataloader,CONFIG=CONFIG,
+  File "torch_run.py", line 67, in train_epoch
+    model.to(CONFIG['device'])
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/nn/modules/module.py", line 899, in to
+    return self._apply(convert)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/nn/modules/module.py", line 570, in _apply
+    module._apply(fn)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/nn/modules/module.py", line 570, in _apply
+    module._apply(fn)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/nn/modules/module.py", line 570, in _apply
+    module._apply(fn)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/nn/modules/module.py", line 593, in _apply
+    param_applied = fn(param)
+  File "/home/dogoulis/anaconda3/lib/python3.8/site-packages/torch/nn/modules/module.py", line 897, in convert
+    return t.to(device, dtype if t.is_floating_point() or t.is_complex() else None, non_blocking)
+RuntimeError: CUDA error: out of memory
+CUDA kernel errors might be asynchronously reported at some other API call,so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1.

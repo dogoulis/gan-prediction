@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "torch_run.py", line 224, in <module>
+    main()
+  File "torch_run.py", line 150, in main
+    elif args.modl=='vit-base':
+AttributeError: 'Namespace' object has no attribute 'modl'

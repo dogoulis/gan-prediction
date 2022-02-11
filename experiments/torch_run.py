@@ -6,12 +6,10 @@ import torch.nn.functional as F
 from torch.utils.data.dataloader import DataLoader
 import wandb
 import timm
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
 from tqdm import tqdm
 from dataset import pytorch_dataset
-from torchvision import transforms
-from models import resnet50, vit_base, vit_base
+from torchvision import transforms as T
+from models import resnet50, vit_base, vit_large
 
 # experiment configuration
 
@@ -81,7 +79,7 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
         y = y.unsqueeze(1)
         optimizer.zero_grad()
 
-        with torch.cuda.amp.autocast(device_type=CONFIG['device']):
+        with torch.cuda.amp.autocast():
             outputs = model(x)
             loss = criterion(outputs,y)
 
@@ -149,7 +147,7 @@ def main():
         model = resnet50()
     elif args.model=='vit-large':
         model = vit_large()
-    elif args.modl=='vit-base':
+    elif args.model=='vit-base':
         model = vit_base()
 
     # defining transforms
@@ -169,14 +167,14 @@ def main():
     ])]
     '''
 
-    normalization = transforms.Normalize(
+    normalization = T.Normalize(
                 mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
             )
-    transforms = transforms.Compose(
+    transforms = T.Compose(
                 [
-                    transforms.RandomResizedCrop(image_size, scale=(0.7, 1.0)),
-                    transforms.RandomHorizontalFlip(),
-                    transforms.ToTensor(),
+                    T.RandomResizedCrop(224, scale=(0.7, 1.0)),
+                    T.RandomHorizontalFlip(),
+                    T.ToTensor(),
                     normalization,
                 ]
             )
@@ -194,12 +192,12 @@ def main():
 
     # defining data loaders:
 
-    train_dataloader = DataLoader(train_dataset, batch_size=24, shuffle=True)
-    val_dataloader = DataLoader(val_dataset, batch_size=24, shuffle=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+    val_dataloader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=True)
 
     # setting the model:
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.wd)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     criterion = nn.BCEWithLogitsLoss()
 
@@ -208,7 +206,7 @@ def main():
     save_dir = args.save_dir
     
     
-    n_epochs = 30
+    n_epochs = 1
 
 
     for epoch in range(n_epochs):

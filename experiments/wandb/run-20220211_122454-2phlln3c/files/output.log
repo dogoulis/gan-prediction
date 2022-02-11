@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "torch_run.py", line 224, in <module>
+    main()
+  File "torch_run.py", line 175, in main
+    transforms.RandomResizedCrop(image_size, scale=(0.7, 1.0)),
+UnboundLocalError: local variable 'transforms' referenced before assignment
