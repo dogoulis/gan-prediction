@@ -11,6 +11,7 @@ from albumentations.pytorch import ToTensorV2
 from tqdm import tqdm
 from dataset import pytorch_dataset
 from torchvision import transforms
+from models import resnet50, vit_base, vit_base
 
 # experiment configuration
 
@@ -31,6 +32,9 @@ CONFIG = {
 # parser:
     
 parser = argparse.ArgumentParser(description='Training arguments')
+
+parser.add_argument('-m', '--model',
+                metavar='model', help='which model to use in training')
 
 parser.add_argument('-b', '--batch_size', type=int, default=CONFIG['batch_size'],
                 metavar='batch_size', help='input batch size for training (default: 32)')
@@ -55,22 +59,6 @@ parser.add_argument('--save_dir', metavar='save-dir', help='save directory path'
 
 args = parser.parse_args()
 CONFIG.update(vars(args))
- 
-# make the class for the model
-
-class resnet50(nn.Module):
-
-    def __init__(self):
-        super(resnet50, self).__init__()
-        self.model = timm.create_model('resnet50', pretrained=True)
-        self.model.classification = nn.Linear(self.model.fc.out_features, 1)
-        self.dropout = nn.Dropout(p=0.3)
-
-    def forward(self, x):
-        x = self.model(x)
-        x = self.dropout(x)
-        x = self.model.classification(x)
-        return x
 
 # define training logic
 
@@ -157,7 +145,12 @@ def main():
 
     # initialize model:
 
-    model = resnet50()
+    if args.model=='resnet50':
+        model = resnet50()
+    elif args.model=='vit-large':
+        model = vit_large()
+    elif args.modl=='vit-base':
+        model = vit_base()
 
     # defining transforms
     '''
