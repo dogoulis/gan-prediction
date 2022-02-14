@@ -17,3 +17,5 @@ csv_maker.py
 indexes/
 experiments/wandb
 dataset/__pycache__
+**/dataset/__pycache__
+**/__pycache__
