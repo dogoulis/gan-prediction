@@ -19,3 +19,8 @@ experiments/wandb
 dataset/__pycache__
 **/dataset/__pycache__
 **/__pycache__
+utils/
+data/test.csv
+data/train.csv
+data/valid.csv
+data/train_2k.csv
