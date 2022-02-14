@@ -12,3 +12,6 @@ interpretability-inter-gradients.ipynb
 interpretability.ipynb
 experiments/dataset/__pycache__
 .vscode/
+concat.ipynb
+csv_maker.py
+indexes/
