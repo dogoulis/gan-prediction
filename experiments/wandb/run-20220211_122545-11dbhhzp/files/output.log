@@ -1,6 +1,0 @@
-Traceback (most recent call last):
-  File "torch_run.py", line 224, in <module>
-    main()
-  File "torch_run.py", line 200, in main
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.wd)
-AttributeError: 'Namespace' object has no attribute 'lr'
