@@ -16,3 +16,4 @@ concat.ipynb
 csv_maker.py
 indexes/
 experiments/wandb
+dataset/__pycache__
