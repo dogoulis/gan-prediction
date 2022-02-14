@@ -146,7 +146,7 @@ def main():
 
     # initialize weights and biases:
 
-    wandb.init(project='torch-run-.61-10k', config=CONFIG)
+    wandb.init(project='project01', config=CONFIG)
 
     # initialize model:
 
