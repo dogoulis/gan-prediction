@@ -163,12 +163,10 @@ def main():
     normalization = T.Normalize(
                 mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
             )
-    transforms = T.Compose(
-                [
+    transforms = T.Compose([
                     T.ToTensor(),
-                    normalization,
-                ]
-            )
+                    normalization
+                ])
     
 
     # define test dir:
@@ -177,7 +175,7 @@ def main():
 
     # define test dataset:
 
-    test_dataset = pytorch_dataset.dataset2(dataset_test, transforms[1])
+    test_dataset = pytorch_dataset.dataset2(dataset_test, transforms)
 
     # define data loaders:
 

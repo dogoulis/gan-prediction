@@ -177,14 +177,12 @@ def main():
     normalization = T.Normalize(
         mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
     )
-    transforms = T.Compose(
-        [
+    transforms = T.Compose([
             T.RandomResizedCrop(224, scale=(0.7, 1.0)),
             T.RandomHorizontalFlip(),
             T.ToTensor(),
             normalization,
-        ]
-    )
+        ])
 
     # set the paths for training
 

@@ -15,3 +15,4 @@ experiments/dataset/__pycache__
 concat.ipynb
 csv_maker.py
 indexes/
+experiments/wandb
