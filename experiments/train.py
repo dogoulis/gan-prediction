@@ -221,23 +221,25 @@ def main():
 
     n_epochs = args.epochs
 
+    # set value for min-loss:
+    min_loss = float('inf')
+
     for epoch in range(n_epochs):
 
         train_epoch_loss, _, _ = train_epoch(model, train_dataloader=train_dataloader, CONFIG=CONFIG,
                                              optimizer=optimizer, criterion=criterion)
         val_epoch_loss, _, _ = validate_epoch(model, val_dataloader=val_dataloader, CONFIG=CONFIG,
                                               criterion=criterion)
-        if epoch == 1:
+
+        if val_epoch_loss < min_loss:
             min_loss = val_epoch_loss
-            torch.save(model.cpu().state_dict(),
-                       os.path.join(save_dir, f'epoch-{1}.pt'))
-        else:
-            if val_epoch_loss < min_loss:
-                min_loss = val_epoch_loss
-                torch.save(model.cpu().state_dict(), os.path.join(
-                    save_dir, f'best-ckpt-epoch-{epoch}.pt'))
+            torch.save(model.cpu().state_dict(), os.path.join(
+                save_dir, f'best-ckpt-epoch-{epoch}.pt'))
 
         print(train_epoch_loss, val_epoch_loss)
+
+    # log min-loss of the model:
+    wandb.log({'min-loss': min_loss})
 
 
 if __name__ == '__main__':
