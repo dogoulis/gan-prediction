@@ -5,12 +5,12 @@ import torch.nn.functional as F
 from torch.utils.data.dataloader import DataLoader
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
 import wandb
-import timm
 from torchvision import transforms as T
 from tqdm import tqdm
 import numpy as np
 from dataset import pytorch_dataset
 import pandas as pd
+from models import resnet50, vit_base, vit_large
 
 # testing configuration
 
@@ -24,6 +24,9 @@ CONFIG = {
 # parser:
 
 parser = argparse.ArgumentParser(description='Testing arguments')
+
+parser.add_argument('-m', '--model',
+                    metavar='model', help='which model to use in training: resnet50, vit-large, vit-base')
 
 parser.add_argument('--giqa', type=bool, default=CONFIG['GIQA'],
                     metavar='GIQA', help='Train with Giqa')
@@ -43,25 +46,6 @@ parser.add_argument('--weights_dir',
 
 args = parser.parse_args()
 CONFIG.update(vars(args))
-
-# make the class for the model
-
-
-class resnet50(nn.Module):
-
-    def __init__(self):
-        super(resnet50, self).__init__()
-        self.model = timm.create_model('resnet50', pretrained=False)
-        self.model.classification = nn.Linear(self.model.fc.out_features, 1)
-        self.sigmoid = nn.Sigmoid()
-        self.dropout = nn.Dropout(p=0.3)
-
-    def forward(self, x):
-        x = self.model(x)
-        x = self.dropout(x)
-        x = self.model.classification(x)
-        x = self.sigmoid(x)
-        return x
 
 
 def testing(model, dataloader, criterion):
@@ -145,8 +129,12 @@ def main():
 
     # initialize model:
 
-    model = resnet50()
-
+    if args.model == 'resnet50':
+        model = resnet50()
+    elif args.model == 'vit-large':
+        model = vit_large()
+    elif args.model == 'vit-base':
+        model = vit_base()
     # load weights:
 
     model.load_state_dict(torch.load(args.weights_dir))
