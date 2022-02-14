@@ -212,7 +212,7 @@ def main():
 
     save_dir = args.save_dir
 
-    if os.path.isdir(save_dir):
+    if not os.path.isdir(save_dir):
         pass
     else:
         os.mkdir(save_dir)
