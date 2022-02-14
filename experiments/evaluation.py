@@ -6,7 +6,7 @@ from torch.utils.data.dataloader import DataLoader
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
 import wandb
 import timm
-from torchvision import transforms
+from torchvision import transforms as T
 from tqdm import tqdm
 import numpy as np
 from dataset import pytorch_dataset
@@ -160,14 +160,12 @@ def main():
 
     # defining transforms:
 
-    normalization = transforms.Normalize(
+    normalization = T.Normalize(
                 mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
             )
-    transforms = transforms.Compose(
+    transforms = T.Compose(
                 [
-                    transforms.RandomResizedCrop(image_size, scale=(0.7, 1.0)),
-                    transforms.RandomHorizontalFlip(),
-                    transforms.ToTensor(),
+                    T.ToTensor(),
                     normalization,
                 ]
             )
