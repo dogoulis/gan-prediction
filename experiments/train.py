@@ -7,7 +7,9 @@ from torch.utils.data.dataloader import DataLoader
 import wandb
 from tqdm import tqdm
 from dataset import pytorch_dataset
-from torchvision import transforms as T
+#from torchvision import transforms as T
+import albumentations as A
+from albumentations.pytorch.transforms import ToTensorV2
 from models import resnet50, vit_base, vit_large
 
 # experiment configuration
@@ -173,7 +175,7 @@ def main():
             ToTensorV2()
     ])]
     '''
-
+    '''
     normalization = T.Normalize(
         mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
     )
@@ -183,6 +185,19 @@ def main():
             T.ToTensor(),
             normalization,
         ])
+    '''
+
+    # add Wang augmentations pipeline
+
+    transforms = A.Compose([
+    A.augmentations.geometric.resize.Resize(256, 256),
+    A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0,3.0), p=0.5),
+    A.augmentations.transforms.ImageCompression(quality_lower=30, quality_upper=100, p=0.1),
+    A.augmentations.crops.transforms.RandomCrop(224, 224),
+    A.augmentations.transforms.HorizontalFlip(),
+    A.Normalize(),
+    ToTensorV2(),
+    ])
 
     # set the paths for training
 

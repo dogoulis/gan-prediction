@@ -1,6 +1,9 @@
+from matplotlib import transforms
 from torch.utils.data import Dataset, DataLoader
 import torch
-from PIL import Image
+#from PIL import Image
+import cv2
+import numpy as np
 import pandas as pd
 from albumentations.pytorch import ToTensorV2
 
@@ -20,11 +23,12 @@ class dataset2(Dataset):
 
     def __getitem__(self,idx):
         
-        image = Image.open(self.imgs[idx])
-        label = self.labels[idx]
+        image = cv2.imread(self.imgs[idx])
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         label = self.labels[idx]
         if self.transforms:
-            image = self.transforms(image)
+           tr_img = self.transforms(image=image)
+           image = tr_img['image']
         else:
             image = ToTensorV2(image)
         label = torch.tensor(label).float()
