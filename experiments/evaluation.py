@@ -5,12 +5,14 @@ import torch.nn.functional as F
 from torch.utils.data.dataloader import DataLoader
 from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
 import wandb
-from torchvision import transforms as T
+#from torchvision import transforms as T
 from tqdm import tqdm
 import numpy as np
 from dataset import pytorch_dataset
 import pandas as pd
-from models import resnet50, vit_base, vit_large
+from models import *
+import albumentations as A
+from albumentations.pytorch.transforms import ToTensorV2
 
 # testing configuration
 
@@ -65,8 +67,10 @@ def testing(model, dataloader, criterion):
 
             x, y = data[0].to(CONFIG['device']), data[1].to(CONFIG['device'])
             y = y.unsqueeze(1)
-            outputs = model(x)
-            loss = criterion(outputs, y)
+
+            with torch.cuda.amp.autocast():
+                outputs = model(x)
+                loss = criterion(outputs, y)
 
             running_loss += loss.item()
 
@@ -135,6 +139,9 @@ def main():
         model = vit_large()
     elif args.model == 'vit-base':
         model = vit_base()
+    elif args.model == 'swin':
+        model = swin_base()
+    
     # load weights:
 
     model.load_state_dict(torch.load(args.weights_dir))
@@ -147,15 +154,13 @@ def main():
     model.to(device)
 
     # defining transforms:
-
-    normalization = T.Normalize(
-                mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-            )
-    transforms = T.Compose([
-                    T.ToTensor(),
-                    normalization
-                ])
-    
+    transforms = A.Compose([
+        A.augmentations.geometric.resize.Resize(256, 256),
+        A.augmentations.crops.transforms.CenterCrop(224, 224),
+        A.augmentations.transforms.HorizontalFlip(),
+        A.Normalize(),
+        ToTensorV2(),
+    ])
 
     # define test dir:
 
@@ -167,11 +172,11 @@ def main():
 
     # define data loaders:
 
-    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=True)
+    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
     # set the criterion:
 
-    criterion = nn.BCELoss()
+    criterion = nn.BCEWithLogitsLoss()
 
     # testing
 

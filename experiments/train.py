@@ -32,7 +32,7 @@ CONFIG = {
 parser = argparse.ArgumentParser(description='Training arguments')
 
 parser.add_argument('-m', '--model',
-                    metavar='model', help='which model to use in training: resnet50, vit-large, vit-base')
+                    metavar='model', help='which model to use in training: resnet50, vit-large, vit-base, swin')
 
 parser.add_argument('-e', '--epochs', type=int,
                     metavar='epochs', help='Number of epochs')
@@ -41,16 +41,16 @@ parser.add_argument('-b', '--batch_size', type=int, default=CONFIG['batch_size']
                     metavar='batch_size', help='input batch size for training (default: 32)')
 
 parser.add_argument('-lr', '--learning_rate', type=float, default=CONFIG['learning_rate'],
-                    metavar='Learning Rate', help='learning rate of the optimizer')
+                    metavar='Learning Rate', help='learning rate of the optimizer (default: 1e-3)')
 
 parser.add_argument('-wd', '--weight_decay', type=float, default=CONFIG['weight_decay'],
-                    metavar='Weight Decay', help='Weight decay of the optimizer')
+                    metavar='Weight Decay', help='Weight decay of the optimizer (default: 1e-5)')
 
 parser.add_argument('-gq', '--giqa',
-                    metavar='GIQA', help='Train with Giqa')
+                    metavar='GIQA', help='Train with Giqa, only for logging purposes')
 
 parser.add_argument('-d', '--device', default=CONFIG['device'],
-                    metavar='device', help='device used during training')
+                    metavar='device', help='device used during training (default: "cuda")')
 
 parser.add_argument('--train_dir', metavar='train-dir',
                     help='training dataset path for csv')
@@ -190,7 +190,7 @@ def main():
     train_dataloader = DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=True)
     val_dataloader = DataLoader(
-        val_dataset, batch_size=args.batch_size, shuffle=True)
+        val_dataset, batch_size=args.batch_size, shuffle=False)
 
     # setting the model:
 
