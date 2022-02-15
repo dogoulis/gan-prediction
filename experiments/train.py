@@ -22,7 +22,6 @@ CONFIG = {
     'learning_rate': 1e-3,
     'weight_decay': 1e-5,
     'Model-Type': 'resnet',
-    'GIQA': 'yes',
     'device': 'cuda'
 
 }
@@ -47,7 +46,7 @@ parser.add_argument('-lr', '--learning_rate', type=float, default=CONFIG['learni
 parser.add_argument('-wd', '--weight_decay', type=float, default=CONFIG['weight_decay'],
                     metavar='Weight Decay', help='Weight decay of the optimizer')
 
-parser.add_argument('-gq', '--giqa', default=CONFIG['GIQA'],
+parser.add_argument('-gq', '--giqa',
                     metavar='GIQA', help='Train with Giqa')
 
 parser.add_argument('-d', '--device', default=CONFIG['device'],
