@@ -211,9 +211,10 @@ def main():
     # directory:
 
     save_dir = args.save_dir
+    print(save_dir)
 
-    if not os.path.isdir(save_dir):
-        os.mkdir(save_dir)
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
     else:
         pass
 
