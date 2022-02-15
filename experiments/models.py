@@ -55,3 +55,19 @@ class vit_base(nn.Module):
         x = self.dropout(x)
         x = self.model.classification(x)
         return x
+
+#Swin-base-Transformer
+
+class swin_base(nn.Module):
+
+    def __init__(self):
+        super(swin_base, self).__init__()
+        self.model = timm.create_model('swin_base_patch4_window7_224')
+        self.model.classification = nn.Linear(self.model.head.out_features, 1)
+        self.dropout = nn.Dropout(p=0.3)
+
+    def forward(self, x):
+        x = self.model(x)
+        x = self.dropout(x)
+        x = self.model.classification(x)
+        return x
