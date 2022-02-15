@@ -224,6 +224,8 @@ def main():
 
     for epoch in range(n_epochs):
 
+        wandb.log({'epoch':epoch})
+
         train_epoch_loss, _, _ = train_epoch(model, train_dataloader=train_dataloader, CONFIG=CONFIG,
                                              optimizer=optimizer, criterion=criterion)
         val_epoch_loss, _, _ = validate_epoch(model, val_dataloader=val_dataloader, CONFIG=CONFIG,
@@ -232,7 +234,7 @@ def main():
         if val_epoch_loss < min_loss:
             min_loss = val_epoch_loss
             torch.save(model.cpu().state_dict(), os.path.join(
-                save_dir, f'best-ckpt-epoch-{epoch}.pt'))
+                save_dir, 'best-ckpt.pt'))
 
         print(train_epoch_loss, val_epoch_loss)
 
