@@ -10,7 +10,7 @@ from dataset import pytorch_dataset
 #from torchvision import transforms as T
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
-from models import resnet50, vit_base, vit_large
+from models import *
 
 # experiment configuration
 
@@ -161,6 +161,8 @@ def main():
         model = vit_large()
     elif args.model == 'vit-base':
         model = vit_base()
+    elif args.model == 'swin':
+        model = swin_base()
 
     # add Wang augmentations pipeline transformed into albumentations:
 
