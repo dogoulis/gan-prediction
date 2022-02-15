@@ -78,6 +78,8 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
 
     batch = 0
 
+    fp16_scaler = torch.cuda.amp.GradScaler()
+
     for data in tqdm(train_dataloader):
 
         x, y = data[0].to(CONFIG['device']), data[1].to(CONFIG['device'])
@@ -90,12 +92,13 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
         with torch.cuda.amp.autocast():
             outputs = model(x)
             loss = criterion(outputs, y)
+        
+        fp16_scaler.scale(loss).backward()
+        fp16_scaler.step(optimizer)
+        fp16_scaler.update()
 
         if batch % 10 == 0:
             wandb.log({'train-step-loss': loss})
-
-        loss.backward()
-        optimizer.step()
 
         running_loss += loss.item()
 
@@ -159,35 +162,7 @@ def main():
     elif args.model == 'vit-base':
         model = vit_base()
 
-    # defining transforms
-    '''
-    transforms = [A.Compose([
-        # resize
-            A.augmentations.geometric.resize.Resize(256, 256),
-        # center crop:
-            A.augmentations.crops.transforms.CenterCrop (224,224),
-            A.Normalize(),
-            ToTensorV2()]), 
-            
-            A.Compose([A.augmentations.geometric.resize.Resize(256, 256),
-            A.augmentations.crops.transforms.CenterCrop (224,224),
-            A.Normalize(),
-            ToTensorV2()
-    ])]
-    '''
-    '''
-    normalization = T.Normalize(
-        mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
-    )
-    transforms = T.Compose([
-            T.RandomResizedCrop(224, scale=(0.7, 1.0)),
-            T.RandomHorizontalFlip(),
-            T.ToTensor(),
-            normalization,
-        ])
-    '''
-
-    # add Wang augmentations pipeline
+    # add Wang augmentations pipeline transformed into albumentations:
 
     transforms = A.Compose([
     A.augmentations.geometric.resize.Resize(256, 256),
