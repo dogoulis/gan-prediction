@@ -213,9 +213,9 @@ def main():
     save_dir = args.save_dir
 
     if not os.path.isdir(save_dir):
-        pass
-    else:
         os.mkdir(save_dir)
+    else:
+        pass
 
     n_epochs = args.epochs
 
