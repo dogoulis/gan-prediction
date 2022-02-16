@@ -72,7 +72,9 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
     print('Training')
 
     model.to(CONFIG['device'])
+    model.freeze()
     model.train()
+
     running_loss = 0.0
 
     batch = 0
@@ -86,20 +88,23 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
         batch += 1
 
         y = y.unsqueeze(1)
+        
         optimizer.zero_grad()
 
         with torch.cuda.amp.autocast():
             outputs = model(x)
+            
             loss = criterion(outputs, y)
-        
+
         fp16_scaler.scale(loss).backward()
         fp16_scaler.step(optimizer)
         fp16_scaler.update()
 
+        running_loss += loss.item()
+ 
+
         if batch % 10 == 0:
             wandb.log({'train-step-loss': loss})
-
-        running_loss += loss.item()
 
     train_loss = running_loss/len(train_dataloader.dataset)
 
@@ -129,9 +134,11 @@ def validate_epoch(model, val_dataloader, CONFIG, criterion):
 
             outputs = model(x)
             loss = criterion(outputs, y)
+
             # loss calculation over batch
             running_loss += loss.item()
-            # accuracy calcilation over batch
+            # accuracy calculation over batch
+            outputs = model.sigmoid(outputs)
             outputs = torch.round(outputs)
             correct_ = (outputs == y).sum().item()
             correct += correct_
@@ -165,14 +172,22 @@ def main():
 
     # add Wang augmentations pipeline transformed into albumentations:
 
-    transforms = A.Compose([
-    A.augmentations.geometric.resize.Resize(256, 256),
-    A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0,3.0), p=0.5),
-    A.augmentations.transforms.ImageCompression(quality_lower=30, quality_upper=100, p=0.1),
-    A.augmentations.crops.transforms.RandomCrop(224, 224),
-    A.augmentations.transforms.HorizontalFlip(),
-    A.Normalize(),
-    ToTensorV2(),
+    train_transforms = A.Compose([
+        A.augmentations.geometric.resize.Resize(256, 256),
+        A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
+        A.augmentations.transforms.ImageCompression(
+            quality_lower=30, quality_upper=100, p=0.1),
+        A.augmentations.crops.transforms.RandomCrop(224, 224),
+        A.augmentations.transforms.HorizontalFlip(),
+        A.Normalize(),
+        ToTensorV2(),
+    ])
+
+    valid_transforms = A.Compose([
+        A.augmentations.geometric.resize.Resize(256, 256),
+        A.augmentations.crops.transforms.CenterCrop(224, 224),
+        A.Normalize(),
+        ToTensorV2(),
     ])
 
     # set the paths for training
@@ -181,9 +196,9 @@ def main():
 
     dataset_val = args.valid_dir
 
-    train_dataset = pytorch_dataset.dataset2(dataset_train, transforms)
+    train_dataset = pytorch_dataset.dataset2(dataset_train, train_transforms)
 
-    val_dataset = pytorch_dataset.dataset2(dataset_val, transforms)
+    val_dataset = pytorch_dataset.dataset2(dataset_val, valid_transforms)
 
     # defining data loaders:
 
@@ -195,7 +210,7 @@ def main():
     # setting the model:
 
     optimizer = torch.optim.Adam(
-        model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
+        filter(lambda p: p.requires_grad, model.parameters()), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     criterion = nn.BCEWithLogitsLoss()
 
@@ -216,7 +231,7 @@ def main():
 
     for epoch in range(n_epochs):
 
-        wandb.log({'epoch':epoch})
+        wandb.log({'epoch': epoch})
 
         train_epoch_loss, _, _ = train_epoch(model, train_dataloader=train_dataloader, CONFIG=CONFIG,
                                              optimizer=optimizer, criterion=criterion)
@@ -228,7 +243,7 @@ def main():
             torch.save(model.cpu().state_dict(), os.path.join(
                 save_dir, 'best-ckpt.pt'))
 
-        print(train_epoch_loss, val_epoch_loss)
+        print(f'train-epoch-loss:{train_epoch_loss}', f'val-epoch-loss:{val_epoch_loss}')
 
     # log min-loss of the model:
     wandb.log({'min-loss': min_loss})
