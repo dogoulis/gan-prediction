@@ -165,7 +165,7 @@ def main():
 
     # add Wang augmentations pipeline transformed into albumentations:
 
-    transforms = A.Compose([
+    train_transforms = A.Compose([
     A.augmentations.geometric.resize.Resize(256, 256),
     A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0,3.0), p=0.5),
     A.augmentations.transforms.ImageCompression(quality_lower=30, quality_upper=100, p=0.1),
@@ -175,15 +175,22 @@ def main():
     ToTensorV2(),
     ])
 
+    valid_transforms = A.Compose([
+        A.augmentations.geometric.resize.Resize(256, 256),
+        A.augmentations.crops.transforms.CenterCrop(224, 224),
+        A.Normalize(),
+        ToTensorV2(),
+    ])
+
     # set the paths for training
 
     dataset_train = args.train_dir
 
     dataset_val = args.valid_dir
 
-    train_dataset = pytorch_dataset.dataset2(dataset_train, transforms)
+    train_dataset = pytorch_dataset.dataset2(dataset_train, train_transforms)
 
-    val_dataset = pytorch_dataset.dataset2(dataset_val, transforms)
+    val_dataset = pytorch_dataset.dataset2(dataset_val, valid_transforms)
 
     # defining data loaders:
 

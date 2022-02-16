@@ -157,7 +157,6 @@ def main():
     transforms = A.Compose([
         A.augmentations.geometric.resize.Resize(256, 256),
         A.augmentations.crops.transforms.CenterCrop(224, 224),
-        A.augmentations.transforms.HorizontalFlip(),
         A.Normalize(),
         ToTensorV2(),
     ])
