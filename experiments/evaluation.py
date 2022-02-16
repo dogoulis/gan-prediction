@@ -61,6 +61,8 @@ def testing(model, dataloader, criterion):
     y_true = []
     y_pred = []
 
+    correct = 0
+
     with torch.no_grad():
 
         for data in tqdm(dataloader):
@@ -68,11 +70,18 @@ def testing(model, dataloader, criterion):
             x, y = data[0].to(CONFIG['device']), data[1].to(CONFIG['device'])
             y = y.unsqueeze(1)
 
-            with torch.cuda.amp.autocast():
-                outputs = model(x)
-                loss = criterion(outputs, y)
+            
+            outputs = model(x)
+            loss = criterion(outputs, y)
 
             running_loss += loss.item()
+            
+            outputs = model.sigmoid(outputs)
+
+            outputs = model.sigmoid(outputs)
+            outputs = torch.round(outputs)
+            correct_ = (outputs == y).sum().item()
+            correct += correct_
 
             y = y.squeeze(0)
             outputs = outputs.squeeze(0)
@@ -82,6 +91,9 @@ def testing(model, dataloader, criterion):
 
             y_true.append(y)
             y_pred.append(outputs)
+
+    acc = 100. * correct/len(dataloader.dataset)
+    print(f'test acc: {acc}')
 
     test_loss = running_loss/len(dataloader.dataset)
 

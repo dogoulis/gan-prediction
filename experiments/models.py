@@ -16,6 +16,7 @@ class resnet50(nn.Module):
         super(resnet50, self).__init__()
         self.model = timm.create_model('resnet50', pretrained=True)
         self.model.fc = nn.Linear(self.model.fc.in_features, 1)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         x = self.model(x)
@@ -37,12 +38,23 @@ class vit_large(nn.Module):
 
     def __init__(self):
         super(vit_large, self).__init__()
-        self.model = timm.create_model('vit_large_patch16_224', pretrained=True, num_classes=2)
-        self.model.classification = nn.Linear(self.model.head.out_features, 1)
+        self.model = timm.create_model('vit_large_patch16_224', pretrained=True)
+        self.model.head = nn.Linear(self.model.head.in_features, 1)
+        self.sigmoid = nn.Sigmoid()
     
     def forward(self, x):
         x = self.model(x)
         return x
+
+    def freeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = False
+        for param in self.model.head.parameters():
+            param.requires_grad = True
+    
+    def unfreeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = True
 
 #ViT-base
 
@@ -50,12 +62,23 @@ class vit_base(nn.Module):
 
     def __init__(self):
         super(vit_base, self).__init__()
-        self.model = timm.create_model('vit_base_patch16_224', pretrained=True, num_classes=2)
-        self.model.classification = nn.Linear(self.model.head.out_features, 1)
+        self.model = timm.create_model('vit_base_patch16_224', pretrained=True)
+        self.model.head = nn.Linear(self.model.head.in_features, 1)
+        self.sigmoid = nn.Sigmoid()
     
     def forward(self, x):
         x = self.model(x)
         return x
+
+    def freeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = False
+        for param in self.model.head.parameters():
+            param.requires_grad = True
+    
+    def unfreeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = True
 
 #Swin-base-Transformer
 
@@ -63,8 +86,20 @@ class swin_base(nn.Module):
 
     def __init__(self):
         super(swin_base, self).__init__()
-        self.model = timm.create_model('swin_base_patch4_window7_224', pretrained=True, num_classes=2)
+        self.model = timm.create_model('swin_base_patch4_window7_224', pretrained=True)
+        self.model.head = nn.Linear(self.model.head.in_features, 1)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         x = self.model(x)
         return x
+
+    def freeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = False
+        for param in self.model.head.parameters():
+            param.requires_grad = True
+    
+    def unfreeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = True

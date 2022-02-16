@@ -88,10 +88,12 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
         batch += 1
 
         y = y.unsqueeze(1)
+        
         optimizer.zero_grad()
 
         with torch.cuda.amp.autocast():
             outputs = model(x)
+            
             loss = criterion(outputs, y)
 
         fp16_scaler.scale(loss).backward()
@@ -132,9 +134,11 @@ def validate_epoch(model, val_dataloader, CONFIG, criterion):
 
             outputs = model(x)
             loss = criterion(outputs, y)
+
             # loss calculation over batch
             running_loss += loss.item()
-            # accuracy calcilation over batch
+            # accuracy calculation over batch
+            outputs = model.sigmoid(outputs)
             outputs = torch.round(outputs)
             correct_ = (outputs == y).sum().item()
             correct += correct_
