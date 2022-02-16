@@ -25,3 +25,4 @@ data/train.csv
 data/valid.csv
 data/train_2k.csv
 experiments/python
+experiments/__pycache__
