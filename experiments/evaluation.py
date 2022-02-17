@@ -62,7 +62,7 @@ def testing(model, dataloader, criterion):
     y_pred = []
 
     correct = 0
-
+    
     with torch.no_grad():
 
         for data in tqdm(dataloader):
@@ -75,10 +75,9 @@ def testing(model, dataloader, criterion):
             loss = criterion(outputs, y)
 
             running_loss += loss.item()
-            
-            outputs = model.sigmoid(outputs)
 
             outputs = model.sigmoid(outputs)
+
             outputs = torch.round(outputs)
             correct_ = (outputs == y).sum().item()
             correct += correct_
@@ -95,13 +94,11 @@ def testing(model, dataloader, criterion):
     acc = 100. * correct/len(dataloader.dataset)
     print(f'test acc: {acc}')
 
-    test_loss = running_loss/len(dataloader.dataset)
+    wandb.log({'test-loss': loss})
 
-    wandb.log({'test-loss': test_loss})
+    print(f"Test loss is {loss}")
 
-    print(f"Test loss is {test_loss}")
-
-    return test_loss, y_true, y_pred
+    return loss, y_true, y_pred
 
 
 def log_metrics(y_true, y_pred):

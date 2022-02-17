@@ -61,6 +61,16 @@ parser.add_argument('--valid_dir', metavar='valid-dir',
 parser.add_argument('--save_dir', metavar='save-dir',
                     help='save directory path')
 
+parser.add_argument('--name', metavar='name',
+                    help='Experiment name that logs into wandb')
+
+parser.add_argument('--pretrained', metavar='pretrained',
+                    help='Flag for adding an argument if the model loaded for training does not load as pretrained from timm and need to load the weights from directory.\
+                        Currently works for swin-base model.')
+
+parser.add_argument('--weights_dir', metavar='weight_dir',
+                    help='Directory of the weights for the model. Currently works for swin-base model')
+
 args = parser.parse_args()
 CONFIG.update(vars(args))
 
@@ -106,7 +116,7 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
         if batch % 10 == 0:
             wandb.log({'train-step-loss': loss})
 
-    train_loss = running_loss/len(train_dataloader.dataset)
+    train_loss = running_loss/batch
 
     wandb.log({'train-epoch-loss': train_loss})
 
@@ -157,7 +167,7 @@ def main():
 
     # initialize weights and biases:
 
-    wandb.init(project='project01', config=CONFIG)
+    wandb.init(project='project01', config=CONFIG, name=args.name, save_code=True)
 
     # initialize model:
 
@@ -169,6 +179,10 @@ def main():
         model = vit_base()
     elif args.model == 'swin':
         model = swin_base()
+
+    if args.pretrained:
+        model.load_state_dict(torch.load(args.weights_dir))
+
 
     # add Wang augmentations pipeline transformed into albumentations:
 
