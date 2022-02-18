@@ -7,7 +7,6 @@ from torch.utils.data.dataloader import DataLoader
 import wandb
 from tqdm import tqdm
 from dataset import pytorch_dataset
-#from torchvision import transforms as T
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 from models import *
@@ -21,7 +20,6 @@ CONFIG = {
     'Loss': 'BCE with Logits',
     'learning_rate': 1e-3,
     'weight_decay': 1e-5,
-    'Model-Type': 'resnet',
     'device': 'cuda'
 
 }
@@ -77,15 +75,20 @@ CONFIG.update(vars(args))
 # define training logic
 
 
-def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
+def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler):
 
     print('Training')
 
     model.to(CONFIG['device'])
-    model.freeze()
+    
+    # to train only the classification layer:
+    #model.freeze()
+
     model.train()
 
     running_loss = 0.0
+
+    running_loss_per_10 = 0.0
 
     batch = 0
 
@@ -98,12 +101,12 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
         batch += 1
 
         y = y.unsqueeze(1)
-        
+
         optimizer.zero_grad()
 
         with torch.cuda.amp.autocast():
             outputs = model(x)
-            
+
             loss = criterion(outputs, y)
 
         fp16_scaler.scale(loss).backward()
@@ -111,10 +114,15 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion):
         fp16_scaler.update()
 
         running_loss += loss.item()
- 
 
+        running_loss_per_10 += loss.item()
+
+        scheduler.step()
+
+        # log accumulated loss for the last 10 batches:
         if batch % 10 == 0:
-            wandb.log({'train-step-loss': loss})
+            wandb.log({'train-step-loss': running_loss_per_10})
+            running_loss_per_10 = 0.0
 
     train_loss = running_loss/batch
 
@@ -167,7 +175,8 @@ def main():
 
     # initialize weights and biases:
 
-    wandb.init(project='project01', config=CONFIG, name=args.name, save_code=True)
+    wandb.init(project='project01', config=CONFIG,
+               name=args.name, save_code=True)
 
     # initialize model:
 
@@ -182,7 +191,6 @@ def main():
 
     if args.pretrained:
         model.load_state_dict(torch.load(args.weights_dir))
-
 
     # add Wang augmentations pipeline transformed into albumentations:
 
@@ -221,10 +229,18 @@ def main():
     val_dataloader = DataLoader(
         val_dataset, batch_size=args.batch_size, shuffle=False)
 
-    # setting the model:
+    # setting the optimizer:
+
+    # optimizer = torch.optim.Adam(
+    # filter(lambda p: p.requires_grad, model.parameters()), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     optimizer = torch.optim.Adam(
-        filter(lambda p: p.requires_grad, model.parameters()), lr=args.learning_rate, weight_decay=args.weight_decay)
+        model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
+
+    # setting the scheduler:
+
+    scheduler = torch.optim.lr_scheduler.StepLR(
+        optimizer=optimizer, step_size=5, gamma=0.1)
 
     criterion = nn.BCEWithLogitsLoss()
 
@@ -248,7 +264,7 @@ def main():
         wandb.log({'epoch': epoch})
 
         train_epoch_loss, _, _ = train_epoch(model, train_dataloader=train_dataloader, CONFIG=CONFIG,
-                                             optimizer=optimizer, criterion=criterion)
+                                             optimizer=optimizer, criterion=criterion, scheduler=scheduler)
         val_epoch_loss, _, _ = validate_epoch(model, val_dataloader=val_dataloader, CONFIG=CONFIG,
                                               criterion=criterion)
 
@@ -257,7 +273,8 @@ def main():
             torch.save(model.cpu().state_dict(), os.path.join(
                 save_dir, 'best-ckpt.pt'))
 
-        print(f'train-epoch-loss:{train_epoch_loss}', f'val-epoch-loss:{val_epoch_loss}')
+        print(f'train-epoch-loss:{train_epoch_loss}',
+              f'val-epoch-loss:{val_epoch_loss}')
 
     # log min-loss of the model:
     wandb.log({'min-loss': min_loss})
