@@ -19,7 +19,7 @@ CONFIG = {
     'Optimizer': 'adam',
     'Loss': 'BCE with Logits',
     'learning_rate': 1e-3,
-    'weight_decay': 1e-5,
+    'weight_decay': 2e-5,
     'device': 'cuda'
 
 }
@@ -45,7 +45,7 @@ parser.add_argument('-lr', '--learning_rate', type=float, default=CONFIG['learni
                     metavar='Learning Rate', help='learning rate of the optimizer (default: 1e-3)')
 
 parser.add_argument('-wd', '--weight_decay', type=float, default=CONFIG['weight_decay'],
-                    metavar='Weight Decay', help='Weight decay of the optimizer (default: 1e-5)')
+                    metavar='Weight Decay', help='Weight decay of the optimizer (default: 2e-5)')
 
 parser.add_argument('-gq', '--giqa',
                     metavar='GIQA', help='Train with Giqa, only for logging purposes')
@@ -83,9 +83,9 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler
     print('Training')
 
     model.to(CONFIG['device'])
-    
+
     # to train only the classification layer:
-    #model.freeze()
+    # model.freeze()
 
     model.train()
 
@@ -122,9 +122,9 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler
 
         scheduler.step()
 
-        # log accumulated loss for the last 10 batches:
+        # log mean loss for the last 10 batches:
         if batch % 10 == 0:
-            wandb.log({'train-step-loss': running_loss_per_10})
+            wandb.log({'train-step-loss': running_loss_per_10/10.0})
             running_loss_per_10 = 0.0
 
     train_loss = running_loss/batch
