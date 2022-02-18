@@ -45,6 +45,12 @@ parser.add_argument('--id', type=int,
 parser.add_argument('--weights_dir',
                     metavar='weights_dir', help='Directory of weights')
 
+parser.add_argument('--name', metavar='name',
+                    help='Experiment name that logs into wandb')
+
+parser.add_argument('--project_name',
+                    metavar='project_name', help='Project name, utilized for logging purposes in W&B.')
+
 
 args = parser.parse_args()
 CONFIG.update(vars(args))

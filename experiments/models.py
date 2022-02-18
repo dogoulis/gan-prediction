@@ -32,6 +32,29 @@ class resnet50(nn.Module):
         for param in self.model.parameters():
             param.requires_grad = True
 
+#ResNet101:
+class resnet101(nn.Module):
+
+    def __init__(self):
+        super(resnet101, self).__init__()
+        self.model = timm.create_model('resnet101', pretrained=True)
+        self.model.fc = nn.Linear(self.model.fc.in_features, 1)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x = self.model(x)
+        return x
+
+    def freeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = False
+        for param in self.model.fc.parameters():
+            param.requires_grad = True
+    
+    def unfreeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = True
+
 #ViT-large
 
 class vit_large(nn.Module):

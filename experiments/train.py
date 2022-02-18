@@ -29,6 +29,9 @@ CONFIG = {
 
 parser = argparse.ArgumentParser(description='Training arguments')
 
+parser.add_argument('--project_name',
+                    metavar='project_name', help='Project name, utilized for logging purposes in W&B.')
+
 parser.add_argument('-m', '--model',
                     metavar='model', help='which model to use in training: resnet50, vit-large, vit-base, swin')
 
@@ -175,7 +178,7 @@ def main():
 
     # initialize weights and biases:
 
-    wandb.init(project='project01', config=CONFIG,
+    wandb.init(project=args.project_name, config=CONFIG,
                name=args.name, save_code=True)
 
     # initialize model:
@@ -188,6 +191,8 @@ def main():
         model = vit_base()
     elif args.model == 'swin':
         model = swin_base()
+    elif args.model == 'resnet101':
+        model = resnet101()
 
     if args.pretrained:
         model.load_state_dict(torch.load(args.weights_dir))
