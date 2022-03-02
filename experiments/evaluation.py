@@ -144,7 +144,7 @@ def main():
 
     # initialize w&b
 
-    wandb.init(project='first-test', config=CONFIG)
+    wandb.init(project=args.project_name, name=args.name, config=CONFIG)
 
     # initialize model:
 
@@ -156,6 +156,8 @@ def main():
         model = vit_base()
     elif args.model == 'swin':
         model = swin_base()
+    elif args.model=='vit-small':
+        model = vit_small()
     
     # load weights:
 

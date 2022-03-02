@@ -33,7 +33,7 @@ parser.add_argument('--project_name',
                     metavar='project_name', help='Project name, utilized for logging purposes in W&B.')
 
 parser.add_argument('-m', '--model',
-                    metavar='model', help='which model to use in training: resnet50, vit-large, vit-base, swin')
+                    metavar='model', help='which model to use in training: resnet50, vit-large, vit-base, swin, vit-small')
 
 parser.add_argument('-e', '--epochs', type=int,
                     metavar='epochs', help='Number of epochs')
@@ -119,8 +119,8 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler
         running_loss += loss.item()
 
         running_loss_per_10 += loss.item()
-
-        scheduler.step()
+        #change the position of the scheduler:
+        #scheduler.step()
 
         # log mean loss for the last 10 batches:
         if batch % 10 == 0:
@@ -190,9 +190,15 @@ def main():
     elif args.model == 'vit-base':
         model = vit_base()
     elif args.model == 'swin':
-        model = swin_base()
+        model = swin_small()
     elif args.model == 'resnet101':
         model = resnet101()
+    elif args.model=='vit-small':
+        model = vit_small()
+    elif args.model=='swin-tiny':
+        model = swin_tiny()
+    elif args.model=='vit-tiny':
+        model = vit_tiny()
 
     if args.pretrained:
         model.load_state_dict(torch.load(args.weights_dir))

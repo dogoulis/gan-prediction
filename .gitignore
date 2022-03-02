@@ -26,3 +26,6 @@ data/valid.csv
 data/train_2k.csv
 experiments/python
 experiments/__pycache__
+lab_eval.sh
+lab_giqa.sh
+lab_big_train.sh

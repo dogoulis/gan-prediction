@@ -102,13 +102,85 @@ class vit_base(nn.Module):
         for param in self.model.parameters():
             param.requires_grad = True
 
-#Swin-base-Transformer
 
-class swin_base(nn.Module):
+#vit-small
+class vit_small(nn.Module):
 
     def __init__(self):
-        super(swin_base, self).__init__()
+        super(vit_small, self).__init__()
+        self.model = timm.create_model('vit_small_patch16_224', pretrained=True)
+        self.model.head = nn.Linear(self.model.head.in_features, 1)
+        self.sigmoid = nn.Sigmoid()
+    
+    def forward(self, x):
+        x = self.model(x)
+        return x
+
+    def freeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = False
+        for param in self.model.head.parameters():
+            param.requires_grad = True
+    
+    def unfreeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = True
+
+
+#vit-tiny
+class vit_tiny(nn.Module):
+
+    def __init__(self):
+        super(vit_tiny, self).__init__()
+        self.model = timm.create_model('vit_tiny_patch16_224', pretrained=True)
+        self.model.head = nn.Linear(self.model.head.in_features, 1)
+        self.sigmoid = nn.Sigmoid()
+    
+    def forward(self, x):
+        x = self.model(x)
+        return x
+
+    def freeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = False
+        for param in self.model.head.parameters():
+            param.requires_grad = True
+    
+    def unfreeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = True
+
+#Swin-base-Transformer
+
+class swin_small(nn.Module):
+
+    def __init__(self):
+        super(swin_small, self).__init__()
         self.model = timm.create_model('swin_small_patch4_window7_224', pretrained=True)
+        self.model.head = nn.Linear(self.model.head.in_features, 1)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x = self.model(x)
+        return x
+
+    def freeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = False
+        for param in self.model.head.parameters():
+            param.requires_grad = True
+    
+    def unfreeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = True
+
+
+# swin tiny
+class swin_tiny(nn.Module):
+
+    def __init__(self):
+        super(swin_tiny, self).__init__()
+        self.model = timm.create_model('swin_tiny_patch4_window7_224', pretrained=True)
         self.model.head = nn.Linear(self.model.head.in_features, 1)
         self.sigmoid = nn.Sigmoid()
 
