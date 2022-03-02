@@ -155,9 +155,15 @@ def main():
     elif args.model == 'vit-base':
         model = vit_base()
     elif args.model == 'swin':
-        model = swin_base()
+        model = swin_small()
+    elif args.model == 'resnet101':
+        model = resnet101()
     elif args.model=='vit-small':
         model = vit_small()
+    elif args.model=='swin-tiny':
+        model = swin_tiny()
+    elif args.model=='vit-tiny':
+        model = vit_tiny()
     
     # load weights:
 
