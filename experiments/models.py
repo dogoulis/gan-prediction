@@ -197,3 +197,28 @@ class swin_tiny(nn.Module):
     def unfreeze(self):
         for param in self.model.parameters():
             param.requires_grad = True
+
+
+# inception
+
+class inception_v4(nn.Module):
+
+    def __init__(self):
+        super(inception_v4, self).__init__()
+        self.model = timm.create_model('inception_v4', pretrained=True)
+        self.model.last_linear = nn.Linear(self.model.last_linear.in_features, 1)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x = self.model(x)
+        return x
+
+    def freeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = False
+        for param in self.model.fc.parameters():
+            param.requires_grad = True
+    
+    def unfreeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = True

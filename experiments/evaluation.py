@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data.dataloader import DataLoader
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score, roc_auc_score
 import wandb
 #from torchvision import transforms as T
 from tqdm import tqdm
@@ -113,12 +113,14 @@ def log_metrics(y_true, y_pred):
     test_f1 = f1_score(y_true, y_pred)
     test_prec = precision_score(y_true, y_pred)
     test_rec = recall_score(y_true, y_pred)
+    test_auc = roc_auc_score(y_true, y_pred)
 
     wandb.log({
         'Accuracy': test_acc,
         'F1': test_f1,
         'Precision': test_prec,
-        'Recall': test_rec})
+        'Recall': test_rec,
+        'ROC-AUC score': test_auc})
 
 
 def to_numpy(y_true, y_pred):
@@ -164,6 +166,8 @@ def main():
         model = swin_tiny()
     elif args.model=='vit-tiny':
         model = vit_tiny()
+    elif args.model=='inception-v4':
+        model = inception_v4()
     
     # load weights:
 
@@ -177,12 +181,21 @@ def main():
     model.to(device)
 
     # defining transforms:
-    transforms = A.Compose([
-        A.augmentations.geometric.resize.Resize(256, 256),
-        A.augmentations.crops.transforms.CenterCrop(224, 224),
-        A.Normalize(),
-        ToTensorV2(),
-    ])
+
+    if args.model == 'inception-v4':
+
+        transforms = A.Compose([
+            A.augmentations.crops.transforms.CenterCrop(299, 299),
+            A.Normalize(),
+            ToTensorV2(),
+        ])
+    else:
+        transforms = A.Compose([
+            A.augmentations.geometric.resize.Resize(256, 256),
+            A.augmentations.crops.transforms.CenterCrop(224, 224),
+            A.Normalize(),
+            ToTensorV2(),
+        ])
 
     # define test dir:
 

@@ -33,7 +33,7 @@ parser.add_argument('--project_name',
                     metavar='project_name', help='Project name, utilized for logging purposes in W&B.')
 
 parser.add_argument('-m', '--model',
-                    metavar='model', help='which model to use in training: resnet50, vit-large, vit-base, swin, vit-small')
+                    metavar='model', help='which model to use in training: resnet50, vit-large, vit-base, swin, vit-small, swin0tiny, vit-tiny, inception-v4')
 
 parser.add_argument('-e', '--epochs', type=int,
                     metavar='epochs', help='Number of epochs')
@@ -193,35 +193,56 @@ def main():
         model = swin_small()
     elif args.model == 'resnet101':
         model = resnet101()
-    elif args.model=='vit-small':
+    elif args.model== 'vit-small':
         model = vit_small()
-    elif args.model=='swin-tiny':
+    elif args.model== 'swin-tiny':
         model = swin_tiny()
-    elif args.model=='vit-tiny':
+    elif args.model== 'vit-tiny':
         model = vit_tiny()
+    elif args.model == 'inception-v4':
+        model = inception_v4()
 
     if args.pretrained:
         model.load_state_dict(torch.load(args.weights_dir))
 
     # add Wang augmentations pipeline transformed into albumentations:
 
-    train_transforms = A.Compose([
-        A.augmentations.geometric.resize.Resize(256, 256),
-        A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
-        A.augmentations.transforms.ImageCompression(
-            quality_lower=30, quality_upper=100, p=0.1),
-        A.augmentations.crops.transforms.RandomCrop(224, 224),
-        A.augmentations.transforms.HorizontalFlip(),
-        A.Normalize(),
-        ToTensorV2(),
-    ])
+    if args.model == 'inception-v4':
+        
+        train_transforms = A.Compose([
+            A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
+            A.augmentations.transforms.ImageCompression(
+                quality_lower=30, quality_upper=100, p=0.1),
+            A.augmentations.crops.transforms.RandomCrop(299, 299),
+            A.augmentations.transforms.HorizontalFlip(),
+            A.Normalize(),
+            ToTensorV2(),
+        ])
 
-    valid_transforms = A.Compose([
-        A.augmentations.geometric.resize.Resize(256, 256),
-        A.augmentations.crops.transforms.CenterCrop(224, 224),
-        A.Normalize(),
-        ToTensorV2(),
-    ])
+        valid_transforms = A.Compose([
+            A.augmentations.crops.transforms.CenterCrop(299, 299),
+            A.Normalize(),
+            ToTensorV2(),
+        ])
+    
+    else:
+        train_transforms = A.Compose([
+            A.augmentations.geometric.resize.Resize(256, 256),
+            A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
+            A.augmentations.transforms.ImageCompression(
+                quality_lower=30, quality_upper=100, p=0.1),
+            A.augmentations.crops.transforms.RandomCrop(224, 224),
+            A.augmentations.transforms.HorizontalFlip(),
+            A.Normalize(),
+            ToTensorV2(),
+        ])
+
+        valid_transforms = A.Compose([
+            A.augmentations.geometric.resize.Resize(256, 256),
+            A.augmentations.crops.transforms.CenterCrop(224, 224),
+            A.Normalize(),
+            ToTensorV2(),
+        ])
 
     # set the paths for training
 
