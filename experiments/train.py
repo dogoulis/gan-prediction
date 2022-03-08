@@ -11,21 +11,7 @@ import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 from models import *
 
-# experiment configuration
-
-CONFIG = {
-
-    'batch_size': 32,
-    'Optimizer': 'adam',
-    'Loss': 'BCE with Logits',
-    'learning_rate': 1e-3,
-    'weight_decay': 2e-5,
-    'device': 'cuda'
-
-}
-
 # parser:
-
 parser = argparse.ArgumentParser(description='Training arguments')
 
 parser.add_argument('--project_name',
@@ -40,19 +26,19 @@ parser.add_argument('-m', '--model',
 parser.add_argument('-e', '--epochs', type=int,
                     metavar='epochs', help='Number of epochs')
 
-parser.add_argument('-b', '--batch_size', type=int, default=CONFIG['batch_size'],
+parser.add_argument('-b', '--batch_size', type=int, default=32,
                     metavar='batch_size', help='input batch size for training (default: 32)')
 
-parser.add_argument('-lr', '--learning_rate', type=float, default=CONFIG['learning_rate'],
+parser.add_argument('-lr', '--learning_rate', type=float, default=1e-3,
                     metavar='Learning Rate', help='learning rate of the optimizer (default: 1e-3)')
 
-parser.add_argument('-wd', '--weight_decay', type=float, default=CONFIG['weight_decay'],
+parser.add_argument('-wd', '--weight_decay', type=float, default=2e-5,
                     metavar='Weight Decay', help='Weight decay of the optimizer (default: 2e-5)')
 
 parser.add_argument('-gq', '--giqa',
                     metavar='GIQA', help='Train with Giqa, only for logging purposes')
 
-parser.add_argument('-d', '--device', default=CONFIG['device'],
+parser.add_argument('-d', '--device', default='cuda',
                     metavar='device', help='device used during training (default: "cuda")')
 
 parser.add_argument('--train_dir', metavar='train-dir',
@@ -83,14 +69,13 @@ parser.add_argument('--fp16', default=None, metavar='fp16',
 parser.add_argument('--iso', default=None, metavar='iso',
                     help='Indicator for using ISONoise augmentation')
 args = parser.parse_args()
-CONFIG.update(vars(args))
 
 
 # define training logic
-def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler=None, fp16_scaler=None):
+def train_epoch(model, train_dataloader, args, optimizer, criterion, scheduler=None, fp16_scaler=None):
     print('Training')
 
-    model.to(CONFIG['device'])
+    model.to(args['device'])
 
     # to train only the classification layer:
     # model.freeze()
@@ -102,7 +87,7 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler
     pbar = tqdm(train_dataloader)
     for batch, data in enumerate(pbar):
 
-        x, y = data[0].to(CONFIG['device']), data[1].to(CONFIG['device'])
+        x, y = data[0].to(args['device']), data[1].to(args['device'])
         y = y.unsqueeze(1)
 
         optimizer.zero_grad()
@@ -139,10 +124,10 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler
 
 
 # define validation logic
-def validate_epoch(model, val_dataloader, CONFIG, criterion):
+def validate_epoch(model, val_dataloader, args, criterion):
     print('Validating')
 
-    model.to(CONFIG['device'])
+    model.to(args['device'])
     model.eval()
 
     running_loss = 0.0
@@ -151,7 +136,7 @@ def validate_epoch(model, val_dataloader, CONFIG, criterion):
 
     with torch.no_grad():
         for data in tqdm(val_dataloader):
-            x, y = data[0].to(CONFIG['device']), data[1].to(CONFIG['device'])
+            x, y = data[0].to(args['device']), data[1].to(args['device'])
             y = y.unsqueeze(1)
 
             outputs = model(x)
@@ -177,7 +162,7 @@ def validate_epoch(model, val_dataloader, CONFIG, criterion):
 def main():
 
     # initialize weights and biases:
-    wandb.init(project=args.project_name, config=CONFIG,
+    wandb.init(project=args.project_name, config=vars(args),
                name=args.name, save_code=True)
 
     # initialize model:
@@ -279,10 +264,10 @@ def main():
 
         wandb.log({'epoch': epoch})
 
-        train_epoch_loss, _, _ = train_epoch(model, train_dataloader=train_dataloader, CONFIG=CONFIG,
+        train_epoch_loss, _, _ = train_epoch(model, train_dataloader=train_dataloader, args=args,
                                              optimizer=optimizer, criterion=criterion, scheduler=scheduler,
                                              fp16_scaler=fp16_scaler)
-        val_epoch_loss, _, _ = validate_epoch(model, val_dataloader=val_dataloader, CONFIG=CONFIG,
+        val_epoch_loss, _, _ = validate_epoch(model, val_dataloader=val_dataloader, args=args,
                                               criterion=criterion)
 
         if val_epoch_loss < min_loss:
