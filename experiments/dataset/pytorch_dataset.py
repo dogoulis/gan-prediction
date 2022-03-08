@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 import pandas as pd
 from albumentations.pytorch import ToTensorV2
+import os
 
 
 class dataset2(Dataset):
@@ -23,7 +24,7 @@ class dataset2(Dataset):
 
     def __getitem__(self,idx):
         
-        image = cv2.imread(self.imgs[idx])
+        image = cv2.imread(os.path.join('/fssd1/user-data/dogoulis/',self.imgs[idx]))
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         label = self.labels[idx]
         if self.transforms:
