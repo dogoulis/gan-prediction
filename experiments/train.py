@@ -257,7 +257,6 @@ def main():
         model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     # setting the scheduler:
-
     scheduler = torch.optim.lr_scheduler.StepLR(
         optimizer=optimizer, step_size=5, gamma=0.1)
 
@@ -268,26 +267,21 @@ def main():
         fp16_scaler = torch.cuda.amp.GradScaler()
 
     # directory:
-
     save_dir = args.save_dir
     print(save_dir)
 
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
-    else:
-        pass
-
-    n_epochs = args.epochs
 
     # set value for min-loss:
     min_loss = float('inf')
-
-    for epoch in range(n_epochs):
+    for epoch in range(args.epochs):
 
         wandb.log({'epoch': epoch})
 
         train_epoch_loss, _, _ = train_epoch(model, train_dataloader=train_dataloader, CONFIG=CONFIG,
-                                             optimizer=optimizer, criterion=criterion, scheduler=scheduler)
+                                             optimizer=optimizer, criterion=criterion, scheduler=scheduler,
+                                             fp16_scaler=fp16_scaler)
         val_epoch_loss, _, _ = validate_epoch(model, val_dataloader=val_dataloader, CONFIG=CONFIG,
                                               criterion=criterion)
 
