@@ -210,38 +210,19 @@ def main():
 
     # add Wang augmentations pipeline transformed into albumentations:
 
-    if args.model == 'xception':
-        
-        train_transforms = A.Compose([
+    train_transforms = A.Compose([
+            A.augmentations.geometric.resize.Resize(256,256),
             A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
             A.augmentations.transforms.ImageCompression(
-                quality_lower=30, quality_upper=100, p=0.1),
-            A.augmentations.crops.transforms.RandomCrop(299, 299),
-            A.augmentations.transforms.HorizontalFlip(),
-            A.Normalize(),
-            ToTensorV2(),
-        ])
-
-        valid_transforms = A.Compose([
-            A.augmentations.crops.transforms.CenterCrop(299, 299),
-            A.Normalize(),
-            ToTensorV2(),
-        ])
-    
-    else:
-        train_transforms = A.Compose([
-            A.augmentations.geometric.resize.Resize(256, 256),
-            A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
-            A.augmentations.transforms.ImageCompression(
-                quality_lower=30, quality_upper=100, p=0.1),
+                quality_lower=30, quality_upper=100, p=0.5),
             A.augmentations.crops.transforms.RandomCrop(224, 224),
             A.augmentations.transforms.HorizontalFlip(),
             A.Normalize(),
             ToTensorV2(),
         ])
 
-        valid_transforms = A.Compose([
-            A.augmentations.geometric.resize.Resize(256, 256),
+    valid_transforms = A.Compose([
+            A.augmentations.geometric.resize.Resize(256,256),
             A.augmentations.crops.transforms.CenterCrop(224, 224),
             A.Normalize(),
             ToTensorV2(),
@@ -268,9 +249,6 @@ def main():
             A.Normalize(),
             ToTensorV2(),
         ])
-
-
-
 
     # set the paths for training
 
