@@ -1,6 +1,5 @@
 datasets/CSV/.ipynb_checkpoints
 vscode/
-lab.sh
 #data/
 checkpoints/
 .ipynb_checkpoints/
@@ -28,10 +27,6 @@ experiments/python
 experiments/__pycache__
 lab_eval.sh
 lab_giqa.sh
-lab_big_train.sh
 experiments/lab_xception.sh
-experiments/lab_test.sh
 test.py
-experiments/lab_iso.sh
-experiments/lab_iso_eval.sh
-
+data/non_lab
