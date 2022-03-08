@@ -29,5 +29,9 @@ experiments/__pycache__
 lab_eval.sh
 lab_giqa.sh
 lab_big_train.sh
-experiments/lab_inception.sh
+experiments/lab_xception.sh
 experiments/lab_test.sh
+test.py
+experiments/lab_iso.sh
+experiments/lab_iso_eval.sh
+

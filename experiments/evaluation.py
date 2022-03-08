@@ -168,6 +168,8 @@ def main():
         model = vit_tiny()
     elif args.model=='inception-v4':
         model = inception_v4()
+    elif args.model=='xception':
+        model = xception()
     
     # load weights:
 
@@ -182,7 +184,7 @@ def main():
 
     # defining transforms:
 
-    if args.model == 'inception-v4':
+    if args.model == 'xception':
 
         transforms = A.Compose([
             A.augmentations.crops.transforms.CenterCrop(299, 299),

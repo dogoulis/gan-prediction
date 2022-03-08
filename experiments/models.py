@@ -222,3 +222,27 @@ class inception_v4(nn.Module):
     def unfreeze(self):
         for param in self.model.parameters():
             param.requires_grad = True
+
+# xception
+
+class xception(nn.Module):
+
+    def __init__(self):
+        super(xception, self).__init__()
+        self.model = timm.create_model('xception', pretrained=True)
+        self.model.fc = nn.Linear(self.model.fc.in_features, 1)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x = self.model(x)
+        return x
+
+    def freeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = False
+        for param in self.model.fc.parameters():
+            param.requires_grad = True
+    
+    def unfreeze(self):
+        for param in self.model.parameters():
+            param.requires_grad = True

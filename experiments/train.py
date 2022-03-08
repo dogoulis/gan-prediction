@@ -72,6 +72,7 @@ parser.add_argument('--pretrained', metavar='pretrained',
 parser.add_argument('--weights_dir', metavar='weight_dir',
                     help='Directory of the weights for the model. Currently works for swin-base model')
 
+parser.add_argument('--iso')
 args = parser.parse_args()
 CONFIG.update(vars(args))
 
@@ -201,13 +202,15 @@ def main():
         model = vit_tiny()
     elif args.model == 'inception-v4':
         model = inception_v4()
+    elif args.model =='xception':
+        model = xception()
 
     if args.pretrained:
         model.load_state_dict(torch.load(args.weights_dir))
 
     # add Wang augmentations pipeline transformed into albumentations:
 
-    if args.model == 'inception-v4':
+    if args.model == 'xception':
         
         train_transforms = A.Compose([
             A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
@@ -243,6 +246,31 @@ def main():
             A.Normalize(),
             ToTensorV2(),
         ])
+    
+    if args.iso:
+                
+        train_transforms = A.Compose([
+            A.augmentations.geometric.resize.Resize(256,256),
+            A.OneOf([
+            A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
+            A.augmentations.transforms.ImageCompression(
+                quality_lower=30, quality_upper=100, p=0.5),
+            A.augmentations.transforms.ISONoise(p=0.5)]),
+            A.augmentations.crops.transforms.RandomCrop(224, 224),
+            A.augmentations.transforms.HorizontalFlip(),
+            A.Normalize(),
+            ToTensorV2(),
+        ])
+
+        valid_transforms = A.Compose([
+            A.augmentations.geometric.resize.Resize(256,256),
+            A.augmentations.crops.transforms.CenterCrop(224, 224),
+            A.Normalize(),
+            ToTensorV2(),
+        ])
+
+
+
 
     # set the paths for training
 
