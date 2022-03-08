@@ -51,6 +51,9 @@ parser.add_argument('--name', metavar='name',
 parser.add_argument('--project_name',
                     metavar='project_name', help='Project name, utilized for logging purposes in W&B.')
 
+parser.add_argument('--group', 
+                    metavar='group', help='Grouping argument for W&B init.')
+
 
 args = parser.parse_args()
 CONFIG.update(vars(args))
@@ -146,7 +149,7 @@ def main():
 
     # initialize w&b
 
-    wandb.init(project=args.project_name, name=args.name, config=CONFIG)
+    wandb.init(project=args.project_name, name=args.name, config=CONFIG, group=args.group)
 
     # initialize model:
 
