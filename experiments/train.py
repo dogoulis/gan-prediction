@@ -18,7 +18,7 @@ parser.add_argument('--project_name',
                     metavar='project_name', help='Project name, utilized for logging purposes in W&B.')
 
 parser.add_argument('-d', '--dataset_dir', required=True,
-                    metavar='model', help='Directory where the datasets are stored.')
+                    metavar='dataset_dir', help='Directory where the datasets are stored.')
 
 parser.add_argument('-m', '--model',
                     metavar='model', help='which model to use in training: resnet50, vit-large, vit-base, swin, vit-small, swin0tiny, vit-tiny, inception-v4')
