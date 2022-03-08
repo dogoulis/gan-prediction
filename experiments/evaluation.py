@@ -14,14 +14,6 @@ from models import *
 import albumentations as A
 from albumentations.pytorch.transforms import ToTensorV2
 
-# testing configuration
-
-CONFIG = {
-
-    'Model-Type': 'resnet',
-    'GIQA': True,
-    'device': 'cuda'
-}
 
 # parser:
 
@@ -30,10 +22,7 @@ parser = argparse.ArgumentParser(description='Testing arguments')
 parser.add_argument('-m', '--model',
                     metavar='model', help='which model to use in training: resnet50, vit-large, vit-base')
 
-parser.add_argument('--giqa', type=bool, default=CONFIG['GIQA'],
-                    metavar='GIQA', help='Train with Giqa')
-
-parser.add_argument('--device', default=CONFIG['device'],
+parser.add_argument('--device', default='cuda',
                     metavar='device', help='device used during testing')
 
 parser.add_argument('--test_dir',
@@ -51,12 +40,14 @@ parser.add_argument('--name', metavar='name',
 parser.add_argument('--project_name',
                     metavar='project_name', help='Project name, utilized for logging purposes in W&B.')
 
-parser.add_argument('--group', 
+parser.add_argument('--group',
                     metavar='group', help='Grouping argument for W&B init.')
+
+parser.add_argument('-d', '--dataset_dir', required=True,
+                    metavar='dataset_dir', help='Directory where the datasets are stored.')
 
 
 args = parser.parse_args()
-CONFIG.update(vars(args))
 
 
 def testing(model, dataloader, criterion):
@@ -71,15 +62,14 @@ def testing(model, dataloader, criterion):
     y_pred = []
 
     correct = 0
-    
+
     with torch.no_grad():
 
         for data in tqdm(dataloader):
 
-            x, y = data[0].to(CONFIG['device']), data[1].to(CONFIG['device'])
+            x, y = data[0].to(args.device), data[1].to(args.device)
             y = y.unsqueeze(1)
 
-            
             outputs = model(x)
             loss = criterion(outputs, y)
 
@@ -135,6 +125,7 @@ def to_numpy(y_true, y_pred):
 
     return y_true, y_pred
 
+
 def log_conf_matrix(y_true, y_pred):
 
     conf_matrix = confusion_matrix(y_true=y_true, y_pred=y_pred)
@@ -149,7 +140,8 @@ def main():
 
     # initialize w&b
 
-    wandb.init(project=args.project_name, name=args.name, config=CONFIG, group=args.group)
+    wandb.init(project=args.project_name, name=args.name,
+               config=vars(args), group=args.group)
 
     # initialize model:
 
@@ -163,17 +155,17 @@ def main():
         model = swin_small()
     elif args.model == 'resnet101':
         model = resnet101()
-    elif args.model=='vit-small':
+    elif args.model == 'vit-small':
         model = vit_small()
-    elif args.model=='swin-tiny':
+    elif args.model == 'swin-tiny':
         model = swin_tiny()
-    elif args.model=='vit-tiny':
+    elif args.model == 'vit-tiny':
         model = vit_tiny()
-    elif args.model=='inception-v4':
+    elif args.model == 'inception-v4':
         model = inception_v4()
-    elif args.model=='xception':
+    elif args.model == 'xception':
         model = xception()
-    
+
     # load weights:
 
     model.load_state_dict(torch.load(args.weights_dir))
@@ -181,34 +173,23 @@ def main():
     # set the device:
 
     device = torch.device(
-        CONFIG['device'] if torch.cuda.is_available() else 'cpu')
+        args.device if torch.cuda.is_available() else 'cpu')
 
     model.to(device)
 
     # defining transforms:
 
-    if args.model == 'xception':
-
-        transforms = A.Compose([
-            A.augmentations.crops.transforms.CenterCrop(299, 299),
-            A.Normalize(),
-            ToTensorV2(),
-        ])
-    else:
-        transforms = A.Compose([
-            A.augmentations.geometric.resize.Resize(256, 256),
-            A.augmentations.crops.transforms.CenterCrop(224, 224),
-            A.Normalize(),
-            ToTensorV2(),
-        ])
-
-    # define test dir:
-
-    dataset_test = args.test_dir
+    transforms = A.Compose([
+        A.augmentations.geometric.resize.Resize(256, 256),
+        A.augmentations.crops.transforms.CenterCrop(224, 224),
+        A.Normalize(),
+        ToTensorV2(),
+    ])
 
     # define test dataset:
 
-    test_dataset = pytorch_dataset.dataset2(dataset_test, transforms)
+    test_dataset = pytorch_dataset.dataset2(
+        args.dataset_dir, args.test_dir, transforms)
 
     # define data loaders:
 
