@@ -148,8 +148,8 @@ def validate_epoch(model, val_dataloader, args, criterion):
         wandb.log({'valdiation-epoch-loss': val_loss})
         acc = 100. * correct / len(val_dataloader.dataset)
         wandb.log({'validation-accuracy': acc})
-        print({'valdiation-epoch-loss', val_loss})
-        print({'validation-accuracy', acc})
+        print('valdiation-epoch-loss', val_loss)
+        print('validation-accuracy', acc)
 
         return val_loss, data, outputs
 
