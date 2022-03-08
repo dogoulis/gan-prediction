@@ -46,6 +46,12 @@ parser.add_argument('--group',
 parser.add_argument('-d', '--dataset_dir', required=True,
                     metavar='dataset_dir', help='Directory where the datasets are stored.')
 
+parser.add_argument('--workers', default=8, metavar='workers',
+                    help='Number of workers for the dataloader')
+
+parser.add_argument('-b', '--batch_size', type=int, default=32,
+                    metavar='batch_size', help='input batch size for training (default: 32)')
+
 
 args = parser.parse_args()
 
@@ -193,7 +199,7 @@ def main():
 
     # define data loaders:
 
-    test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+    test_dataloader = DataLoader(test_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False)
 
     # set the criterion:
 
