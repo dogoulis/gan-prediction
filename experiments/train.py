@@ -74,6 +74,9 @@ parser.add_argument('--pretrained', metavar='pretrained',
 parser.add_argument('--weights_dir', metavar='weight_dir',
                     help='Directory of the weights for the model. Currently works for swin-base model')
 
+parser.add_argument('--workers', default=8, metavar='workers',
+                    help='Number of workers for the dataloader')
+
 parser.add_argument('--fp16', default=None, metavar='fp16',
                     help='Indicator for using mixed precision')
 
@@ -96,14 +99,10 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler
 
     running_loss = 0.0
     running_loss_per_10 = 0.0
-    batch = 0
     pbar = tqdm(train_dataloader)
-    for data in pbar:
+    for batch, data in enumerate(pbar):
 
         x, y = data[0].to(CONFIG['device']), data[1].to(CONFIG['device'])
-
-        batch += 1
-
         y = y.unsqueeze(1)
 
         optimizer.zero_grad()
@@ -175,16 +174,13 @@ def validate_epoch(model, val_dataloader, CONFIG, criterion):
 
 
 # MAIN def
-
-
 def main():
-    # initialize weights and biases:
 
+    # initialize weights and biases:
     wandb.init(project=args.project_name, config=CONFIG,
                name=args.name, save_code=True)
 
     # initialize model:
-
     if args.model == 'resnet50':
         model = resnet50()
     elif args.model == 'vit-large':
@@ -210,7 +206,6 @@ def main():
         model.load_state_dict(torch.load(args.weights_dir))
 
     # add Wang augmentations pipeline transformed into albumentations:
-
     train_transforms = A.Compose([
         A.augmentations.geometric.resize.Resize(256, 256),
         A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
@@ -248,11 +243,10 @@ def main():
     val_dataset = pytorch_dataset.dataset2(args.dataset_dir, args.valid_dir, valid_transforms)
 
     # defining data loaders:
-
     train_dataloader = DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=True)
+        train_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=True)
     val_dataloader = DataLoader(
-        val_dataset, batch_size=args.batch_size, shuffle=False)
+        val_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False)
 
     # setting the optimizer:
 
