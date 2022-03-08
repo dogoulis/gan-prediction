@@ -24,13 +24,15 @@ CONFIG = {
 
 }
 
-
 # parser:
 
 parser = argparse.ArgumentParser(description='Training arguments')
 
 parser.add_argument('--project_name',
                     metavar='project_name', help='Project name, utilized for logging purposes in W&B.')
+
+parser.add_argument('-d', '--dataset_dir', required=True,
+                    metavar='model', help='Directory where the datasets are stored.')
 
 parser.add_argument('-m', '--model',
                     metavar='model', help='which model to use in training: resnet50, vit-large, vit-base, swin, vit-small, swin0tiny, vit-tiny, inception-v4')
@@ -76,11 +78,9 @@ parser.add_argument('--iso')
 args = parser.parse_args()
 CONFIG.update(vars(args))
 
+
 # define training logic
-
-
 def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler):
-
     print('Training')
 
     model.to(CONFIG['device'])
@@ -120,23 +120,22 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler
         running_loss += loss.item()
 
         running_loss_per_10 += loss.item()
-        #change the position of the scheduler:
-        #scheduler.step()
+        # change the position of the scheduler:
+        # scheduler.step()
 
         # log mean loss for the last 10 batches:
         if batch % 10 == 0:
-            wandb.log({'train-step-loss': running_loss_per_10/10.0})
+            wandb.log({'train-step-loss': running_loss_per_10 / 10.0})
             running_loss_per_10 = 0.0
 
-    train_loss = running_loss/batch
+    train_loss = running_loss / batch
 
     wandb.log({'train-epoch-loss': train_loss})
 
     return train_loss, data, outputs
 
+
 # define validation logic
-
-
 def validate_epoch(model, val_dataloader, CONFIG, criterion):
     print('Validating')
 
@@ -148,9 +147,7 @@ def validate_epoch(model, val_dataloader, CONFIG, criterion):
     correct = 0
 
     with torch.no_grad():
-
         for data in tqdm(val_dataloader):
-
             x, y = data[0].to(CONFIG['device']), data[1].to(CONFIG['device'])
             y = y.unsqueeze(1)
 
@@ -165,18 +162,18 @@ def validate_epoch(model, val_dataloader, CONFIG, criterion):
             correct_ = (outputs == y).sum().item()
             correct += correct_
 
-        val_loss = running_loss/len(val_dataloader.dataset)
+        val_loss = running_loss / len(val_dataloader.dataset)
         wandb.log({'valdiation-epoch-loss': val_loss})
-        acc = 100. * correct/len(val_dataloader.dataset)
+        acc = 100. * correct / len(val_dataloader.dataset)
         wandb.log({'validation-accuracy': acc})
 
         return val_loss, data, outputs
+
 
 # MAIN def
 
 
 def main():
-
     # initialize weights and biases:
 
     wandb.init(project=args.project_name, config=CONFIG,
@@ -194,15 +191,15 @@ def main():
         model = swin_small()
     elif args.model == 'resnet101':
         model = resnet101()
-    elif args.model== 'vit-small':
+    elif args.model == 'vit-small':
         model = vit_small()
-    elif args.model== 'swin-tiny':
+    elif args.model == 'swin-tiny':
         model = swin_tiny()
-    elif args.model== 'vit-tiny':
+    elif args.model == 'vit-tiny':
         model = vit_tiny()
     elif args.model == 'inception-v4':
         model = inception_v4()
-    elif args.model =='xception':
+    elif args.model == 'xception':
         model = xception()
 
     if args.pretrained:
@@ -211,32 +208,31 @@ def main():
     # add Wang augmentations pipeline transformed into albumentations:
 
     train_transforms = A.Compose([
-            A.augmentations.geometric.resize.Resize(256,256),
-            A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
-            A.augmentations.transforms.ImageCompression(
-                quality_lower=30, quality_upper=100, p=0.5),
-            A.augmentations.crops.transforms.RandomCrop(224, 224),
-            A.augmentations.transforms.HorizontalFlip(),
-            A.Normalize(),
-            ToTensorV2(),
-        ])
+        A.augmentations.geometric.resize.Resize(256, 256),
+        A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
+        A.augmentations.transforms.ImageCompression(
+            quality_lower=30, quality_upper=100, p=0.5),
+        A.augmentations.crops.transforms.RandomCrop(224, 224),
+        A.augmentations.transforms.HorizontalFlip(),
+        A.Normalize(),
+        ToTensorV2(),
+    ])
 
     valid_transforms = A.Compose([
-            A.augmentations.geometric.resize.Resize(256,256),
-            A.augmentations.crops.transforms.CenterCrop(224, 224),
-            A.Normalize(),
-            ToTensorV2(),
-        ])
-    
+        A.augmentations.geometric.resize.Resize(256, 256),
+        A.augmentations.crops.transforms.CenterCrop(224, 224),
+        A.Normalize(),
+        ToTensorV2(),
+    ])
+
     if args.iso:
-                
         train_transforms = A.Compose([
-            A.augmentations.geometric.resize.Resize(256,256),
+            A.augmentations.geometric.resize.Resize(256, 256),
             A.OneOf([
-            A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
-            A.augmentations.transforms.ImageCompression(
-                quality_lower=30, quality_upper=100, p=0.5),
-            A.augmentations.transforms.ISONoise(p=0.5)]),
+                A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
+                A.augmentations.transforms.ImageCompression(
+                    quality_lower=30, quality_upper=100, p=0.5),
+                A.augmentations.transforms.ISONoise(p=0.5)]),
             A.augmentations.crops.transforms.RandomCrop(224, 224),
             A.augmentations.transforms.HorizontalFlip(),
             A.Normalize(),
@@ -244,21 +240,15 @@ def main():
         ])
 
         valid_transforms = A.Compose([
-            A.augmentations.geometric.resize.Resize(256,256),
+            A.augmentations.geometric.resize.Resize(256, 256),
             A.augmentations.crops.transforms.CenterCrop(224, 224),
             A.Normalize(),
             ToTensorV2(),
         ])
 
     # set the paths for training
-
-    dataset_train = args.train_dir
-
-    dataset_val = args.valid_dir
-
-    train_dataset = pytorch_dataset.dataset2(dataset_train, train_transforms)
-
-    val_dataset = pytorch_dataset.dataset2(dataset_val, valid_transforms)
+    train_dataset = pytorch_dataset.dataset2(args.dataset_dir, args.train_dir, train_transforms)
+    val_dataset = pytorch_dataset.dataset2(args.dataset_dir, args.valid_dir, valid_transforms)
 
     # defining data loaders:
 
