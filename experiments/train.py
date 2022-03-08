@@ -23,7 +23,7 @@ parser.add_argument('-d', '--dataset_dir', required=True,
 parser.add_argument('-m', '--model',
                     metavar='model', help='which model to use in training: resnet50, vit-large, vit-base, swin, vit-small, swin0tiny, vit-tiny, inception-v4')
 
-parser.add_argument('-e', '--epochs', type=int,
+parser.add_argument('-e', '--epochs', type=int, default=15,
                     metavar='epochs', help='Number of epochs')
 
 parser.add_argument('-b', '--batch_size', type=int, default=32,
@@ -38,7 +38,7 @@ parser.add_argument('-wd', '--weight_decay', type=float, default=2e-5,
 parser.add_argument('-gq', '--giqa',
                     metavar='GIQA', help='Train with Giqa, only for logging purposes')
 
-parser.add_argument('-d', '--device', default='cuda',
+parser.add_argument('--device', default='cuda',
                     metavar='device', help='device used during training (default: "cuda")')
 
 parser.add_argument('--train_dir', metavar='train-dir',
@@ -75,11 +75,8 @@ args = parser.parse_args()
 def train_epoch(model, train_dataloader, args, optimizer, criterion, scheduler=None, fp16_scaler=None):
     print('Training')
 
-    model.to(args['device'])
-
     # to train only the classification layer:
     # model.freeze()
-
     model.train()
 
     running_loss = 0.0
@@ -87,7 +84,7 @@ def train_epoch(model, train_dataloader, args, optimizer, criterion, scheduler=N
     pbar = tqdm(train_dataloader)
     for batch, data in enumerate(pbar):
 
-        x, y = data[0].to(args['device']), data[1].to(args['device'])
+        x, y = data[0].to(args.device), data[1].to(args.device)
         y = y.unsqueeze(1)
 
         optimizer.zero_grad()
@@ -127,16 +124,13 @@ def train_epoch(model, train_dataloader, args, optimizer, criterion, scheduler=N
 def validate_epoch(model, val_dataloader, args, criterion):
     print('Validating')
 
-    model.to(args['device'])
     model.eval()
 
     running_loss = 0.0
-
     correct = 0
-
     with torch.no_grad():
         for data in tqdm(val_dataloader):
-            x, y = data[0].to(args['device']), data[1].to(args['device'])
+            x, y = data[0].to(args.device), data[1].to(args.device)
             y = y.unsqueeze(1)
 
             outputs = model(x)
@@ -154,6 +148,8 @@ def validate_epoch(model, val_dataloader, args, criterion):
         wandb.log({'valdiation-epoch-loss': val_loss})
         acc = 100. * correct / len(val_dataloader.dataset)
         wandb.log({'validation-accuracy': acc})
+        print({'valdiation-epoch-loss', val_loss})
+        print({'validation-accuracy', acc})
 
         return val_loss, data, outputs
 
@@ -189,6 +185,7 @@ def main():
 
     if args.pretrained:
         model.load_state_dict(torch.load(args.weights_dir))
+    model = model.to(args.device)
 
     # add Wang augmentations pipeline transformed into albumentations:
     train_transforms = A.Compose([
@@ -272,7 +269,7 @@ def main():
 
         if val_epoch_loss < min_loss:
             min_loss = val_epoch_loss
-            torch.save(model.cpu().state_dict(), os.path.join(
+            torch.save(model.state_dict(), os.path.join(
                 save_dir, 'best-ckpt.pt'))
 
         print(f'train-epoch-loss:{train_epoch_loss}',
