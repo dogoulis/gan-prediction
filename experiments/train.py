@@ -74,13 +74,17 @@ parser.add_argument('--pretrained', metavar='pretrained',
 parser.add_argument('--weights_dir', metavar='weight_dir',
                     help='Directory of the weights for the model. Currently works for swin-base model')
 
-parser.add_argument('--iso')
+parser.add_argument('--fp16', default=None, metavar='fp16',
+                    help='Indicator for using mixed precision')
+
+parser.add_argument('--iso', default=None, metavar='iso',
+                    help='Indicator for using ISONoise augmentation')
 args = parser.parse_args()
 CONFIG.update(vars(args))
 
 
 # define training logic
-def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler):
+def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler=None, fp16_scaler=None):
     print('Training')
 
     model.to(CONFIG['device'])
@@ -91,14 +95,10 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler
     model.train()
 
     running_loss = 0.0
-
     running_loss_per_10 = 0.0
-
     batch = 0
-
-    fp16_scaler = torch.cuda.amp.GradScaler()
-
-    for data in tqdm(train_dataloader):
+    pbar = tqdm(train_dataloader)
+    for data in pbar:
 
         x, y = data[0].to(CONFIG['device']), data[1].to(CONFIG['device'])
 
@@ -108,14 +108,17 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler
 
         optimizer.zero_grad()
 
-        with torch.cuda.amp.autocast():
+        with torch.cuda.amp.autocast(fp16_scaler is not None):
             outputs = model(x)
-
             loss = criterion(outputs, y)
 
-        fp16_scaler.scale(loss).backward()
-        fp16_scaler.step(optimizer)
-        fp16_scaler.update()
+        if fp16_scaler is not None:
+            fp16_scaler.scale(loss).backward()
+            fp16_scaler.step(optimizer)
+            fp16_scaler.update()
+        else:
+            loss.backward()
+            optimizer.step()
 
         running_loss += loss.item()
 
@@ -126,6 +129,7 @@ def train_epoch(model, train_dataloader, CONFIG, optimizer, criterion, scheduler
         # log mean loss for the last 10 batches:
         if batch % 10 == 0:
             wandb.log({'train-step-loss': running_loss_per_10 / 10.0})
+            pbar.set_postfix(loss=running_loss_per_10 / 10.0)
             running_loss_per_10 = 0.0
 
     train_loss = running_loss / batch
@@ -218,14 +222,7 @@ def main():
         ToTensorV2(),
     ])
 
-    valid_transforms = A.Compose([
-        A.augmentations.geometric.resize.Resize(256, 256),
-        A.augmentations.crops.transforms.CenterCrop(224, 224),
-        A.Normalize(),
-        ToTensorV2(),
-    ])
-
-    if args.iso:
+    if args.iso is not None:
         train_transforms = A.Compose([
             A.augmentations.geometric.resize.Resize(256, 256),
             A.OneOf([
@@ -239,12 +236,12 @@ def main():
             ToTensorV2(),
         ])
 
-        valid_transforms = A.Compose([
-            A.augmentations.geometric.resize.Resize(256, 256),
-            A.augmentations.crops.transforms.CenterCrop(224, 224),
-            A.Normalize(),
-            ToTensorV2(),
-        ])
+    valid_transforms = A.Compose([
+        A.augmentations.geometric.resize.Resize(256, 256),
+        A.augmentations.crops.transforms.CenterCrop(224, 224),
+        A.Normalize(),
+        ToTensorV2(),
+    ])
 
     # set the paths for training
     train_dataset = pytorch_dataset.dataset2(args.dataset_dir, args.train_dir, train_transforms)
@@ -271,6 +268,10 @@ def main():
         optimizer=optimizer, step_size=5, gamma=0.1)
 
     criterion = nn.BCEWithLogitsLoss()
+
+    fp16_scaler = None
+    if args.fp16 is not None:
+        fp16_scaler = torch.cuda.amp.GradScaler()
 
     # directory:
 
