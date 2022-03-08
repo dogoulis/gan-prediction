@@ -1,7 +1,7 @@
 datasets/CSV/.ipynb_checkpoints
 vscode/
 lab.sh
-data/
+#data/
 checkpoints/
 .ipynb_checkpoints/
 wandb/
@@ -20,8 +20,8 @@ dataset/__pycache__
 **/dataset/__pycache__
 **/__pycache__
 utils/
-data/test.csv
-data/train.csv
+data/old
+data/indexes
 data/valid.csv
 data/train_2k.csv
 experiments/python
