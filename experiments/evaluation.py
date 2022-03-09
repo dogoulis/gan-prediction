@@ -87,11 +87,8 @@ def testing(model, dataloader, criterion):
             correct_ = (outputs == y).sum().item()
             correct += correct_
 
-            y = y.squeeze(0)
-            outputs = outputs.squeeze(0)
-
-            y = y.cpu().item()
-            outputs = outputs.cpu().item()
+            y = y.squeeze(0).cpu()
+            outputs = outputs.squeeze(0).cpu()
 
             y_true.append(y)
             y_pred.append(outputs)
@@ -103,7 +100,7 @@ def testing(model, dataloader, criterion):
 
     print(f"Test loss is {loss}")
 
-    return loss, y_true, y_pred
+    return loss, torch.cat(y_true, 0), torch.cat(y_pred, 0)
 
 
 def log_metrics(y_true, y_pred):
@@ -139,18 +136,15 @@ def log_conf_matrix(y_true, y_pred):
     cf_matrix = wandb.Table(dataframe=conf_matrix)
     wandb.log({'conf_mat': cf_matrix})
 
+
 # main def:
-
-
 def main():
 
     # initialize w&b
-
     wandb.init(project=args.project_name, name=args.name,
                config=vars(args), group=args.group)
 
     # initialize model:
-
     if args.model == 'resnet50':
         model = resnet50()
     elif args.model == 'vit-large':
@@ -173,18 +167,15 @@ def main():
         model = xception()
 
     # load weights:
-
     model.load_state_dict(torch.load(args.weights_dir))
 
     # set the device:
-
     device = torch.device(
         args.device if torch.cuda.is_available() else 'cpu')
 
     model.to(device)
 
     # defining transforms:
-
     transforms = A.Compose([
         A.augmentations.geometric.resize.Resize(256, 256),
         A.augmentations.crops.transforms.CenterCrop(224, 224),
@@ -193,31 +184,24 @@ def main():
     ])
 
     # define test dataset:
-
     test_dataset = pytorch_dataset.dataset2(
         args.dataset_dir, args.test_dir, transforms)
 
     # define data loaders:
-
     test_dataloader = DataLoader(test_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False)
 
     # set the criterion:
-
     criterion = nn.BCEWithLogitsLoss()
 
     # testing
-
     test_loss, y_true, y_pred = testing(
         model=model, dataloader=test_dataloader, criterion=criterion)
 
     # converting lists into numpy arrays
-
     y_true, y_pred = to_numpy(y_true=y_true, y_pred=y_pred)
 
     # calculating and logging results:
-
     log_metrics(y_true=y_true, y_pred=y_pred)
-
     log_conf_matrix(y_true=y_true, y_pred=y_pred)
 
     print(f'Finished Testing with test loss = {test_loss}')

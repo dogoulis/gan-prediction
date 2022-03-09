@@ -4,16 +4,16 @@
 
 # NOGIQA
 #resnet
-python experiments/evaluation.py -m resnet50 --test_dir data/test.csv \
+python experiments/evaluation.py -d ~/GAN_detection/ -m resnet50 --test_dir data/test.csv \
 --weights_dir checkpoints/second-exp/no_iso/resnet/best-ckpt.pt --name resnet50-test --project_name TEST-EXP --group no_iso
 #vit-tiny
-python experiments/evaluation.py -m vit-tiny --test_dir data/test.csv \
---weights_dircheckpoints/second-exp/no_iso/vit_tiny/best-ckpt.pt --name vit-tiny-test --project_name TEST-EXP --group no_iso
+python experiments/evaluation.py -d ~/GAN_detection/ -m vit-tiny --test_dir data/test.csv \
+--weights_dir checkpoints/second-exp/no_iso/vit_tiny/best-ckpt.pt --name vit-tiny-test --project_name TEST-EXP --group no_iso
 #swin-tiny
-python experiments/evaluation.py -m swin-tiny --test_dir data/test.csv \
+python experiments/evaluation.py -d ~/GAN_detection/ -m swin-tiny --test_dir data/test.csv \
 --weights_dir checkpoints/second-exp/no_iso/swin_tiny/best-ckpt.pt --name swin-tiny-test --project_name TEST-EXP --group no_iso
 #xception
-python experiments/evaluation.py -m xception --test_dir data/test.csv \
+python experiments/evaluation.py -d ~/GAN_detection/ -m xception --test_dir data/test.csv \
 --weights_dir checkpoints/second-exp/no_iso/xception/best-ckpt.pt --name xception-test --project_name TEST-EXP --group no_iso
 
 # GIQA
