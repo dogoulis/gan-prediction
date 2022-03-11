@@ -141,6 +141,7 @@ def log_conf_matrix(y_true, y_pred):
 def main():
 
     # initialize w&b
+    print(args.name)
     wandb.init(project=args.project_name, name=args.name,
                config=vars(args), group=args.group)
 
