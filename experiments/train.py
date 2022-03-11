@@ -68,6 +68,13 @@ parser.add_argument('--fp16', default=None, metavar='fp16',
 
 parser.add_argument('--iso', default=None, metavar='iso',
                     help='Indicator for using ISONoise augmentation')
+
+parser.add_argument('--gaussnoise', default=None, metavar='gaussnoise',
+                    help='Indicator for using Gaussian Noise augmentation')
+
+parser.add_argument('--randomnoise', default=None, metavar='poisson',
+                    help='Indicator for using Ranodm Multiplicative Noise augmentation')
+
 args = parser.parse_args()
 
 
@@ -202,11 +209,39 @@ def main():
     if args.iso is not None:
         train_transforms = A.Compose([
             A.augmentations.geometric.resize.Resize(256, 256),
-            A.OneOf([
-                A.augmentations.transforms.GaussianBlur(sigma_limit=(0.0, 3.0), p=0.5),
-                A.augmentations.transforms.ImageCompression(
-                    quality_lower=30, quality_upper=100, p=0.5),
-                A.augmentations.transforms.ISONoise(p=0.5)]),
+            A.augmentations.transforms.GaussianBlur(
+                sigma_limit=(0.0, 3.0), p=0.5),
+            A.augmentations.transforms.ImageCompression(
+                quality_lower=30, quality_upper=100, p=0.5),
+            A.augmentations.transforms.ISONoise(p=0.5),
+            A.augmentations.crops.transforms.RandomCrop(224, 224),
+            A.augmentations.transforms.HorizontalFlip(),
+            A.Normalize(),
+            ToTensorV2(),
+        ])
+
+    if args.gaussnoise is not None:
+        train_transforms = A.Compose([
+            A.augmentations.geometric.resize.Resize(256, 256),
+            A.augmentations.transforms.GaussianBlur(
+                sigma_limit=(0.0, 3.0), p=0.5),
+            A.augmentations.transforms.ImageCompression(
+                quality_lower=30, quality_upper=100, p=0.5),
+            A.augmentations.transforms.GaussNoise(p=0.5),
+            A.augmentations.crops.transforms.RandomCrop(224, 224),
+            A.augmentations.transforms.HorizontalFlip(),
+            A.Normalize(),
+            ToTensorV2(),
+        ])
+
+    if args.randomnoise is not None:
+        train_transforms = A.Compose([
+            A.augmentations.geometric.resize.Resize(256, 256),
+            A.augmentations.transforms.GaussianBlur(
+                sigma_limit=(0.0, 3.0), p=0.5),
+            A.augmentations.transforms.ImageCompression(
+                quality_lower=30, quality_upper=100, p=0.5),
+            A.augmentations.transforms.MultiplicativeNoise(p=0.5),
             A.augmentations.crops.transforms.RandomCrop(224, 224),
             A.augmentations.transforms.HorizontalFlip(),
             A.Normalize(),
@@ -221,8 +256,10 @@ def main():
     ])
 
     # set the paths for training
-    train_dataset = pytorch_dataset.dataset2(args.dataset_dir, args.train_dir, train_transforms)
-    val_dataset = pytorch_dataset.dataset2(args.dataset_dir, args.valid_dir, valid_transforms)
+    train_dataset = pytorch_dataset.dataset2(
+        args.dataset_dir, args.train_dir, train_transforms)
+    val_dataset = pytorch_dataset.dataset2(
+        args.dataset_dir, args.valid_dir, valid_transforms)
 
     # defining data loaders:
     train_dataloader = DataLoader(
