@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 import timm
-from timm.models.layers import trunc_normal_
 
 """
 This module contains the models that are used for experimentation.
@@ -45,7 +44,7 @@ class resnet50(BaseDetector):
 
 
 #ResNet101:
-class resnet101(nn.Module):
+class resnet101(BaseDetector):
 
     def __init__(self):
         super(resnet101, self).__init__()
@@ -55,73 +54,73 @@ class resnet101(nn.Module):
         torch.nn.init.zeros_(self.model.fc.bias.data)
 
 #ViT-large
-class vit_large(nn.Module):
+class vit_large(BaseDetector):
 
     def __init__(self):
         super(vit_large, self).__init__()
         self.model = timm.create_model('vit_large_patch16_224', pretrained=True)
         self.model.head = nn.Linear(self.model.head.in_features, 1)
-        trunc_normal_(self.model.head.weight.data, std=.02)
+        torch.nn.init.normal_(self.model.head.weight.data, 0.0, .02)
         torch.nn.init.zeros_(self.model.head.bias.data)
 
 
 #ViT-base
-class vit_base(nn.Module):
+class vit_base(BaseDetector):
 
     def __init__(self):
         super(vit_base, self).__init__()
         self.model = timm.create_model('vit_base_patch16_224', pretrained=True)
         self.model.head = nn.Linear(self.model.head.in_features, 1)
-        trunc_normal_(self.model.head.weight.data, std=.02)
+        torch.nn.init.normal_(self.model.head.weight.data, 0.0, .02)
         torch.nn.init.zeros_(self.model.head.bias.data)
 
 
 #vit-small
-class vit_small(nn.Module):
+class vit_small(BaseDetector):
 
     def __init__(self):
         super(vit_small, self).__init__()
         self.model = timm.create_model('vit_small_patch16_224', pretrained=True)
         self.model.head = nn.Linear(self.model.head.in_features, 1)
-        trunc_normal_(self.model.head.weight.data, std=.02)
+        torch.nn.init.normal_(self.model.head.weight.data, 0.0, .02)
         torch.nn.init.zeros_(self.model.head.bias.data)
 
 
 #vit-tiny
-class vit_tiny(nn.Module):
+class vit_tiny(BaseDetector):
 
     def __init__(self):
         super(vit_tiny, self).__init__()
         self.model = timm.create_model('vit_tiny_patch16_224', pretrained=True)
         self.model.head = nn.Linear(self.model.head.in_features, 1)
-        trunc_normal_(self.model.head.weight.data, std=.02)
+        torch.nn.init.normal_(self.model.head.weight.data, 0.0, .02)
         torch.nn.init.zeros_(self.model.head.bias.data)
 
 
 #Swin-base-Transformer
-class swin_small(nn.Module):
+class swin_small(BaseDetector):
 
     def __init__(self):
         super(swin_small, self).__init__()
         self.model = timm.create_model('swin_small_patch4_window7_224', pretrained=True)
         self.model.head = nn.Linear(self.model.head.in_features, 1)
-        trunc_normal_(self.model.head.weight.data, std=.02)
+        torch.nn.init.normal_(self.model.head.weight.data, 0.0, .02)
         torch.nn.init.zeros_(self.model.head.bias.data)
 
 
 # swin tiny
-class swin_tiny(nn.Module):
+class swin_tiny(BaseDetector):
 
     def __init__(self):
         super(swin_tiny, self).__init__()
         self.model = timm.create_model('swin_tiny_patch4_window7_224', pretrained=True)
         self.model.head = nn.Linear(self.model.head.in_features, 1)
-        trunc_normal_(self.model.head.weight.data, std=.02)
+        torch.nn.init.normal_(self.model.head.weight.data, 0.0, .02)
         torch.nn.init.zeros_(self.model.head.bias.data)
 
 
 # inception
-class inception_v4(nn.Module):
+class inception_v4(BaseDetector):
 
     def __init__(self):
         super(inception_v4, self).__init__()
@@ -132,7 +131,7 @@ class inception_v4(nn.Module):
 
 
 # xception
-class xception(nn.Module):
+class xception(BaseDetector):
 
     def __init__(self):
         super(xception, self).__init__()
