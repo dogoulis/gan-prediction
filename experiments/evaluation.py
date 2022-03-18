@@ -1,53 +1,50 @@
 import argparse
+import numpy as np
+import pandas as pd
+from tqdm import tqdm
+
+import timm
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data.dataloader import DataLoader
-from sklearn.metrics import accuracy_score, confusion_matrix, f1_score, precision_score, recall_score, roc_auc_score
 import wandb
-#from torchvision import transforms as T
-from tqdm import tqdm
-import numpy as np
-from dataset import pytorch_dataset
-import pandas as pd
-from models import *
-import albumentations as A
-from albumentations.pytorch.transforms import ToTensorV2
+
+from dataset import pytorch_dataset, augmentations
+from torch.utils.data.dataloader import DataLoader
+from torchmetrics import functional as tmf
 
 
 # parser:
-
 parser = argparse.ArgumentParser(description='Testing arguments')
 
 parser.add_argument('-m', '--model',
                     metavar='model', help='which model to use in training: resnet50, vit-large, vit-base')
 
-parser.add_argument('--device', default='cuda',
-                    metavar='device', help='device used during testing')
+parser.add_argument('-d', '--dataset_dir', type=str, required=True,
+                    metavar='dataset_dir', help='Directory where the datasets are stored.')
 
-parser.add_argument('--test_dir',
+parser.add_argument('--device', type=int, default=0,
+                    metavar='device', help='device used during training (default: 0)')
+
+parser.add_argument('--test_dir', type=str,
                     metavar='testing-directory', help='Directory of the testing csv')
 
 parser.add_argument('--id', type=int,
                     metavar='id', help='id of the test')
 
-parser.add_argument('--weights_dir',
+parser.add_argument('--weights_dir', type=str,
                     metavar='weights_dir', help='Directory of weights')
 
-parser.add_argument('--name', metavar='name',
-                    help='Experiment name that logs into wandb')
+parser.add_argument('--name', type=str,
+                    metavar='name', help='Experiment name that logs into wandb')
 
-parser.add_argument('--project_name',
+parser.add_argument('--project_name', type=str,
                     metavar='project_name', help='Project name, utilized for logging purposes in W&B.')
 
-parser.add_argument('--group',
+parser.add_argument('--group', type=str,
                     metavar='group', help='Grouping argument for W&B init.')
 
-parser.add_argument('-d', '--dataset_dir', required=True,
-                    metavar='dataset_dir', help='Directory where the datasets are stored.')
-
-parser.add_argument('--workers', default=8, metavar='workers',
-                    help='Number of workers for the dataloader')
+parser.add_argument('--workers', default=8,
+                    metavar='workers', help='Number of workers for the dataloader')
 
 parser.add_argument('-b', '--batch_size', type=int, default=32,
                     metavar='batch_size', help='input batch size for training (default: 32)')
@@ -56,60 +53,34 @@ parser.add_argument('-b', '--batch_size', type=int, default=32,
 args = parser.parse_args()
 
 
+@torch.no_grad()
 def testing(model, dataloader, criterion):
-
-    print('Testing')
-
     model.eval()
 
-    running_loss = 0.0
+    running_loss, y_true, y_pred = [], [], []
+    for x, y in tqdm(dataloader):
+        x = x.to(args.device)
+        y = y.to(args.device).unsqueeze(1)
 
-    y_true = []
-    y_pred = []
+        outputs = model(x)
+        loss = criterion(outputs, y)
 
-    correct = 0
+        running_loss.append(loss.cpu().numpy())
+        outputs = torch.sigmoid(outputs)
+        y_true.append(y.squeeze(1).cpu().int())
+        y_pred.append(outputs.squeeze(1).cpu())
+    wandb.log({'Loss': np.mean(running_loss)})
 
-    with torch.no_grad():
-
-        for data in tqdm(dataloader):
-
-            x, y = data[0].to(args.device), data[1].to(args.device)
-            y = y.unsqueeze(1)
-
-            outputs = model(x)
-            loss = criterion(outputs, y)
-
-            running_loss += loss.item()
-
-            outputs = model.sigmoid(outputs)
-
-            outputs = torch.round(outputs)
-            correct_ = (outputs == y).sum().item()
-            correct += correct_
-
-            y = y.squeeze(0).cpu()
-            outputs = outputs.squeeze(0).cpu()
-
-            y_true.append(y)
-            y_pred.append(outputs)
-
-    acc = 100. * correct/len(dataloader.dataset)
-    print(f'test acc: {acc}')
-
-    wandb.log({'test-loss': loss})
-
-    print(f"Test loss is {loss}")
-
-    return loss, torch.cat(y_true, 0), torch.cat(y_pred, 0)
+    return np.mean(running_loss), torch.cat(y_true, 0), torch.cat(y_pred, 0)
 
 
 def log_metrics(y_true, y_pred):
 
-    test_acc = accuracy_score(y_true, y_pred)
-    test_f1 = f1_score(y_true, y_pred)
-    test_prec = precision_score(y_true, y_pred)
-    test_rec = recall_score(y_true, y_pred)
-    test_auc = roc_auc_score(y_true, y_pred)
+    test_acc = tmf.accuracy(y_pred, y_true)
+    test_f1 = tmf.f1(y_pred, y_true)
+    test_prec = tmf.precision(y_pred, y_true)
+    test_rec = tmf.recall(y_pred, y_true)
+    test_auc = tmf.auroc(y_pred, y_true)
 
     wandb.log({
         'Accuracy': test_acc,
@@ -119,19 +90,8 @@ def log_metrics(y_true, y_pred):
         'ROC-AUC score': test_auc})
 
 
-def to_numpy(y_true, y_pred):
-
-    y_true = np.array(y_true)
-    y_pred = np.array(y_pred)
-    y_true = y_true.astype(int)
-    y_pred = np.rint(y_pred)
-
-    return y_true, y_pred
-
-
 def log_conf_matrix(y_true, y_pred):
-
-    conf_matrix = confusion_matrix(y_true=y_true, y_pred=y_pred)
+    conf_matrix = tmf.confusion_matrix(y_pred, y_true, num_classes=2)
     conf_matrix = pd.DataFrame(data=conf_matrix, columns=['A', 'B'])
     cf_matrix = wandb.Table(dataframe=conf_matrix)
     wandb.log({'conf_mat': cf_matrix})
@@ -147,42 +107,27 @@ def main():
 
     # initialize model:
     if args.model == 'resnet50':
-        model = resnet50()
-    elif args.model == 'vit-large':
-        model = vit_large()
-    elif args.model == 'vit-base':
-        model = vit_base()
-    elif args.model == 'swin':
-        model = swin_small()
-    elif args.model == 'resnet101':
-        model = resnet101()
-    elif args.model == 'vit-small':
-        model = vit_small()
+        model = timm.create_model('resnet50', num_classes=1)
     elif args.model == 'swin-tiny':
-        model = swin_tiny()
+        model = timm.create_model('swin_tiny_patch4_window7_224', num_classes=1)
+    elif args.model == 'swin-small':
+        model = timm.create_model('swin_small_patch4_window7_224', num_classes=1)
     elif args.model == 'vit-tiny':
-        model = vit_tiny()
-    elif args.model == 'inception-v4':
-        model = inception_v4()
+        model = timm.create_model('vit_tiny_patch16_224', num_classes=1)
+    elif args.model == 'vit-small':
+        model = timm.create_model('vit_small_patch16_224', num_classes=1)
     elif args.model == 'xception':
-        model = xception()
+        model = timm.create_model('xception', num_classes=1)
+    else:
+        raise Exception('Model architecture not supported.')
 
     # load weights:
-    model.load_state_dict(torch.load(args.weights_dir))
+    model.load_state_dict(torch.load(args.weights_dir, map_location='cpu'))
 
-    # set the device:
-    device = torch.device(
-        args.device if torch.cuda.is_available() else 'cpu')
-
-    model.to(device)
+    model = model.eval().to(args.device)
 
     # defining transforms:
-    transforms = A.Compose([
-        A.augmentations.geometric.resize.Resize(256, 256),
-        A.augmentations.crops.transforms.CenterCrop(224, 224),
-        A.Normalize(),
-        ToTensorV2(),
-    ])
+    transforms = augmentations.get_validation_augmentations()
 
     # define test dataset:
     test_dataset = pytorch_dataset.dataset2(
@@ -197,9 +142,6 @@ def main():
     # testing
     test_loss, y_true, y_pred = testing(
         model=model, dataloader=test_dataloader, criterion=criterion)
-
-    # converting lists into numpy arrays
-    y_true, y_pred = to_numpy(y_true=y_true, y_pred=y_pred)
 
     # calculating and logging results:
     log_metrics(y_true=y_true, y_pred=y_pred)

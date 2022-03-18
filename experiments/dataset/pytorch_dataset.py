@@ -22,8 +22,15 @@ class dataset2(Dataset):
         return len(self.imgs)
 
     def __getitem__(self, idx):
-        image = cv2.imread(os.path.join(self.root_dir, self.imgs[idx]))
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        try:
+            image = cv2.imread(os.path.join(self.root_dir, self.imgs[idx]))
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        except:
+            print(self.imgs[idx])
+            idx += 1
+            image = cv2.imread(os.path.join(self.root_dir, self.imgs[idx]))
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
         label = self.labels[idx]
         if self.transforms:
             tr_img = self.transforms(image=image)
