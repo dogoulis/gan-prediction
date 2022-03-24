@@ -29,7 +29,7 @@ python experiments/evaluation.py -d $DATASET_DIR -b $BATCH_SZ -m $NETWORK --test
 
 
 # GIQA
-python experiments/train.py -d $DATASET_DIR -e $EPOCHS -m $NETWORK -b $BATCH_SZ --train_dir data/train_$SIZE\_giqa.csv --valid_dir data/valgiqa.csv \
+python experiments/train.py -d $DATASET_DIR -e $EPOCHS -m $NETWORK -b $BATCH_SZ --train_dir data/train_$SIZE\_giqa.csv --valid_dir data/val.csv \
 --save_dir checkpoints/$PROJECT_NAME/$AUG/"$NETWORK-giqa"/$SIZE/ --project_name "$PROJECT_NAME-train" --name $NETWORK-giqa -lr 1e-4 --aug $AUG --group $AUG --device $GPU
 
 python experiments/evaluation.py -d $DATASET_DIR -b $BATCH_SZ -m $NETWORK --test_dir data/holdout.csv \
