@@ -29,11 +29,11 @@ parser.add_argument('-e', '--epochs', type=int, default=15,
 parser.add_argument('-b', '--batch_size', type=int, default=32,
                     metavar='batch_size', help='input batch size for training (default: 32)')
 
-parser.add_argument('-lr', '--learning_rate', type=float, default=1e-3,
-                    metavar='Learning Rate', help='learning rate of the optimizer (default: 1e-3)')
+parser.add_argument('-lr', '--learning_rate', type=float, default=1e-4,
+                    metavar='Learning Rate', help='learning rate of the optimizer (default: 1e-4)')
 
-parser.add_argument('-wd', '--weight_decay', type=float, default=1e-5,
-                    metavar='Weight Decay', help='Weight decay of the optimizer (default: 1e-5)')
+parser.add_argument('-wd', '--weight_decay', type=float, default=1e-2,
+                    metavar='Weight Decay', help='Weight decay of the optimizer (default: 1e-2)')
 
 parser.add_argument('--device', type=int, default=0,
                     metavar='device', help='device used during training (default: 0)')
@@ -53,7 +53,7 @@ parser.add_argument('--name', type=str,
 parser.add_argument('--group', type=str,
                     metavar='group', help='Grouping argument for W&B init.')
 
-parser.add_argument('--workers', type=str, default=12,
+parser.add_argument('--workers', type=int, default=12,
                     metavar='workers', help='Number of workers for the dataloader')
 
 parser.add_argument('--fp16', type=str, default=None,
@@ -98,7 +98,7 @@ def train_epoch(model, train_dataloader, args, optimizer, criterion, scheduler=N
             pbar.set_postfix(loss='{:.3f} ({:.3f})'.format(running_loss[-1], np.mean(running_loss)), **val_results)
 
     # change the position of the scheduler:
-    # scheduler.step()
+    scheduler.step()
 
     train_loss = np.mean(running_loss)
 
@@ -147,15 +147,15 @@ def main():
 
     # initialize model:
     if args.model == 'resnet50':
-        model = timm.create_model('resnet50', pretrained=True, num_classes=1)
+        model = timm.create_model('resnet50', drop_path_rate=0.1, pretrained=True, num_classes=1)
     elif args.model == 'swin-tiny':
-        model = timm.create_model('swin_tiny_patch4_window7_224', pretrained=True, num_classes=1)
+        model = timm.create_model('swin_tiny_patch4_window7_224', drop_path_rate=0.1, pretrained=True, num_classes=1)
     elif args.model == 'swin-small':
-        model = timm.create_model('swin_small_patch4_window7_224', pretrained=True, num_classes=1)
+        model = timm.create_model('swin_small_patch4_window7_224', drop_path_rate=0.1, pretrained=True, num_classes=1)
     elif args.model == 'vit-tiny':
-        model = timm.create_model('vit_tiny_patch16_224', pretrained=True, num_classes=1)
+        model = timm.create_model('vit_tiny_patch16_224', drop_path_rate=0.1, pretrained=True, num_classes=1)
     elif args.model == 'vit-small':
-        model = timm.create_model('vit_small_patch16_224', pretrained=True, num_classes=1)
+        model = timm.create_model('vit_small_patch16_224', drop_path_rate=0.1, pretrained=True, num_classes=1)
     elif args.model == 'xception':
         model = timm.create_model('xception', pretrained=True, num_classes=1)
     else:
@@ -179,7 +179,7 @@ def main():
         val_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False)
 
     # setting the optimizer:
-    optimizer = torch.optim.Adam(
+    optimizer = torch.optim.AdamW(
         model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
 
     # setting the scheduler:
