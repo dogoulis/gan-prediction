@@ -32,3 +32,10 @@ test.py
 data/non_lab
 data/new_indexes
 data/concat.ipynb
+data/stylegan3-u.csv
+data/stylegan3.csv
+data/test_stylegan3.csv
+data/test_stylegan3_u.csv
+scripts/stylegan3.sh
+data/test_giqa.ipynb
+scripts/giqa_test.sh
