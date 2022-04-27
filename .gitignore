@@ -39,3 +39,6 @@ data/test_stylegan3_u.csv
 scripts/stylegan3.sh
 data/test_giqa.ipynb
 scripts/giqa_test.sh
+data/testing
+scripts/animal_faces.sh
+scripts/metafaces_test.sh
