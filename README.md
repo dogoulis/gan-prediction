@@ -16,7 +16,8 @@ optional arguments:
   --project_name project_name
                         Project name, utilized for logging purposes in W&B.
   -d dataset_dir, --dataset_dir dataset_dir
-                        Directory where the datasets are stored.
+                        Directory where the datasets are stored. IT IS USED WITH A DIFFERENT DATA LOADER. CURRENTLY
+                        USING --train_dir, --val_dir.
   -m model, --model model
                         which model to use in training: resnet50, swin-tiny, vit-tiny, xception
   -e epochs, --epochs epochs
@@ -37,5 +38,5 @@ optional arguments:
   --group group         Grouping argument for W&B init.
   --workers workers     Number of workers for the dataloader
   --fp16 fp16           Indicator for using mixed precision
-  --aug aug             Indicator for employed augmentations
+  --aug aug             Indicator for employed augmentations employed augmentations
 ```
