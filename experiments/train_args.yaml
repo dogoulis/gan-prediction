@@ -1,0 +1,27 @@
+---
+# w&b
+project_name: ''
+name: ''
+group: ''
+mode: 'online' # online, offline, disabled
+
+# dataset
+train_dir: ''
+valid_dir: ''
+aug: 'wang'
+
+# model
+model: 'resnet50'
+epochs: 2
+batch_size: 32
+learning_rate: 0.0001
+weight_decay: 0.0005
+pretrained: False
+
+
+# weights
+
+save_dir: ''
+workers: 8
+fp16: 'yes' # if None then it does not implement with fp16
+device: 'cpu'
