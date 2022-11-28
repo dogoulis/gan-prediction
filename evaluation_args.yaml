@@ -1,0 +1,24 @@
+---
+# w&b
+project_name: 'CANCER'
+name: 'TUMOR'
+group: ''
+mode: ''
+
+
+# group:
+
+# dataset
+test_dir: 'asdasd'
+
+
+# model
+model: 'resnet'
+batch_size: '32'
+# scheme: 
+
+# weights
+weights_dir: ''
+service_model: ''
+workers: 2
+device: 'mps'

@@ -22,6 +22,7 @@ import wandb
 from dataset import pytorch_dataset, augmentations
 from torch.utils.data.dataloader import DataLoader
 from torchmetrics import functional as tmf
+from gan_ensemble import GanEnsemble
 
 @torch.no_grad()
 def testing(model, dataloader, criterion, args):
@@ -103,6 +104,8 @@ def main():
         model = timm.create_model('vit_small_patch16_224', num_classes=1)
     elif args["model"] == 'xception':
         model = timm.create_model('xception', num_classes=1)
+    elif args["model"] == 'ensemble':
+        model = GanEnsemble(model_names=['resnet50', 'swin-tiny', 'vit-small'], ckpt_path=args['service_model'])
     else:
         raise Exception('Model architecture not supported.')
 
