@@ -1,14 +1,12 @@
+"""
+This module contains the models that are used for experimentation.
+Models are currently used from timm.
+"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 import timm
-
-"""
-This module contains the models that are used for experimentation.
-Models are currently used from timm.
-"""
-
 
 class BaseDetector(nn.Module):
 

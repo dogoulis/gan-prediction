@@ -1,3 +1,14 @@
+"""
+This program implements evaluation on some vision models, for a binary classification with known losses.
+
+It is the simplest implementation of evaluation. It requires a yaml file with the configurations of the program.
+Currently it implemetns resnet50, swin-tiny, vit-small and some variations of them. It is also uses BCEWithLogitLoss
+but it can be upgraded for better functionality.
+Peace.
+"""
+
+
+import yaml
 import argparse
 import numpy as np
 import pandas as pd
@@ -12,55 +23,14 @@ from dataset import pytorch_dataset, augmentations
 from torch.utils.data.dataloader import DataLoader
 from torchmetrics import functional as tmf
 
-
-# parser:
-parser = argparse.ArgumentParser(description='Testing arguments')
-
-parser.add_argument('-m', '--model',
-                    metavar='model', help='which model to use in training: resnet50, vit-large, vit-base')
-
-parser.add_argument('-d', '--dataset_dir', type=str, required=True,
-                    metavar='dataset_dir', help='Directory where the datasets are stored.')
-
-parser.add_argument('--device', type=int, default=0,
-                    metavar='device', help='device used during training (default: 0)')
-
-parser.add_argument('--test_dir', type=str,
-                    metavar='testing-directory', help='Directory of the testing csv')
-
-parser.add_argument('--id', type=int,
-                    metavar='id', help='id of the test')
-
-parser.add_argument('--weights_dir', type=str,
-                    metavar='weights_dir', help='Directory of weights')
-
-parser.add_argument('--name', type=str,
-                    metavar='name', help='Experiment name that logs into wandb')
-
-parser.add_argument('--project_name', type=str,
-                    metavar='project_name', help='Project name, utilized for logging purposes in W&B.')
-
-parser.add_argument('--group', type=str,
-                    metavar='group', help='Grouping argument for W&B init.')
-
-parser.add_argument('--workers', default=8,
-                    metavar='workers', help='Number of workers for the dataloader')
-
-parser.add_argument('-b', '--batch_size', type=int, default=32,
-                    metavar='batch_size', help='input batch size for training (default: 32)')
-
-
-args = parser.parse_args()
-
-
 @torch.no_grad()
-def testing(model, dataloader, criterion):
+def testing(model, dataloader, criterion, args):
     model.eval()
 
     running_loss, y_true, y_pred = [], [], []
     for x, y in tqdm(dataloader):
-        x = x.to(args.device)
-        y = y.to(args.device).unsqueeze(1)
+        x = x.to(args["device"])
+        y = y.to(args["device"]).unsqueeze(1)
 
         outputs = model(x)
         loss = criterion(outputs, y)
@@ -98,43 +68,58 @@ def log_conf_matrix(y_true, y_pred):
 
 
 # main def:
-def main():
+def main(): 
+
+    # add parser for obtaining configuration file:
+    parser = argparse.ArgumentParser(description='Evaluation Arguments')
+
+    parser.add_argument('-cf', '--conf_file', metavar='conf_file', required=True, type=str,
+                         help='Configuration yaml file for the script.')
+
+    parser_args = parser.parse_args()
+
+    # obtain configuration file:
+    cf_file = parser_args["conf_file"]
+
+    # initialize args
+    with open(cf_file, 'r') as stream:
+        args=yaml.safe_load(stream)
 
     # initialize w&b
-    print(args.name)
-    wandb.init(project=args.project_name, name=args.name,
-               config=vars(args), group=args.group)
+    print(args["name"])
+    wandb.init(project=args["project_name"], name=args["name"],
+               config=args, group=args["group"], mode=args["mode"])
 
     # initialize model:
-    if args.model == 'resnet50':
+    if args["model"] == 'resnet50':
         model = timm.create_model('resnet50', num_classes=1)
-    elif args.model == 'swin-tiny':
+    elif args["model"] == 'swin-tiny':
         model = timm.create_model('swin_tiny_patch4_window7_224', num_classes=1)
-    elif args.model == 'swin-small':
+    elif args["model"] == 'swin-small':
         model = timm.create_model('swin_small_patch4_window7_224', num_classes=1)
-    elif args.model == 'vit-tiny':
+    elif args["model"] == 'vit-tiny':
         model = timm.create_model('vit_tiny_patch16_224', num_classes=1)
-    elif args.model == 'vit-small':
+    elif args["model"] == 'vit-small':
         model = timm.create_model('vit_small_patch16_224', num_classes=1)
-    elif args.model == 'xception':
+    elif args["model"] == 'xception':
         model = timm.create_model('xception', num_classes=1)
     else:
         raise Exception('Model architecture not supported.')
 
     # load weights:
-    model.load_state_dict(torch.load(args.weights_dir, map_location='cpu'))
+    model.load_state_dict(torch.load(args["weights_dir"], map_location='cpu'))
 
-    model = model.eval().to(args.device)
+    model = model.eval().to(args["device"])
 
     # defining transforms:
     transforms = augmentations.get_validation_augmentations()
 
     # define test dataset:
     test_dataset = pytorch_dataset.dataset2(
-        args.dataset_dir, args.test_dir, transforms)
+        args["test_dir"], transforms)
 
     # define data loaders:
-    test_dataloader = DataLoader(test_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False)
+    test_dataloader = DataLoader(test_dataset, num_workers=args["workers"], batch_size=args["batch_size"], shuffle=False)
 
     # set the criterion:
     criterion = nn.BCEWithLogitsLoss()
@@ -145,7 +130,7 @@ def main():
 
     # calculating and logging results:
     log_metrics(y_true=y_true, y_pred=y_pred)
-    log_conf_matrix(y_true=y_true, y_pred=y_pred)
+    # log_conf_matrix(y_true=y_true, y_pred=y_pred)
 
     print(f'Finished Testing with test loss = {test_loss}')
 

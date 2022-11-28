@@ -1,5 +1,15 @@
+"""
+This program implements training some vision models, for a binary classification with known losses.
+
+It is the simplest implementation of training. It requires a yaml file with the configurations of the program.
+Currently it implemetns resnet50, swin-tiny, vit-small and some variations of them. It is also uses BCEWithLogitLoss
+but it can be upgraded for better functionality.
+Peace.
+"""
+
 import os
 import argparse
+import yaml
 import numpy as np
 from tqdm import tqdm
 
@@ -11,71 +21,17 @@ import wandb
 from torch.utils.data.dataloader import DataLoader
 from dataset import pytorch_dataset, augmentations
 
-# parser:
-parser = argparse.ArgumentParser(description='Training arguments')
-
-parser.add_argument('--project_name', type=str, required=True,
-                    metavar='project_name', help='Project name, utilized for logging purposes in W&B.')
-
-parser.add_argument('-d', '--dataset_dir', type=str, required=True,
-                    metavar='dataset_dir', help='Directory where the datasets are stored.')
-
-parser.add_argument('-m', '--model', type=str,
-                    metavar='model', help='which model to use in training: resnet50, swin-tiny, vit-tiny, xception')
-
-parser.add_argument('-e', '--epochs', type=int, default=15,
-                    metavar='epochs', help='Number of epochs')
-
-parser.add_argument('-b', '--batch_size', type=int, default=32,
-                    metavar='batch_size', help='input batch size for training (default: 32)')
-
-parser.add_argument('-lr', '--learning_rate', type=float, default=1e-4,
-                    metavar='Learning Rate', help='learning rate of the optimizer (default: 1e-4)')
-
-parser.add_argument('-wd', '--weight_decay', type=float, default=1e-2,
-                    metavar='Weight Decay', help='Weight decay of the optimizer (default: 1e-2)')
-
-parser.add_argument('--device', type=int, default=0,
-                    metavar='device', help='device used during training (default: 0)')
-
-parser.add_argument('--train_dir', type=str,
-                    metavar='train-dir', help='training dataset path for csv')
-
-parser.add_argument('--valid_dir', type=str,
-                    metavar='valid-dir', help='validation dataset path for csv')
-
-parser.add_argument('--save_dir', type=str,
-                    metavar='save-dir', help='save directory path')
-
-parser.add_argument('--name', type=str,
-                    metavar='name', help='Experiment name that logs into wandb')
-
-parser.add_argument('--group', type=str,
-                    metavar='group', help='Grouping argument for W&B init.')
-
-parser.add_argument('--workers', type=int, default=12,
-                    metavar='workers', help='Number of workers for the dataloader')
-
-parser.add_argument('--fp16', type=str, default=None,
-                    metavar='fp16', help='Indicator for using mixed precision')
-
-parser.add_argument('--aug', type=str, default='Wang',
-                    metavar='aug', help='Indicator for employed augmentations')
-args = parser.parse_args()
-
-
 # define training logic
 def train_epoch(model, train_dataloader, args, optimizer, criterion, scheduler=None,
                 fp16_scaler=None, epoch=0, val_results={}):
-    # to train only the classification layer:
     model.train()
 
     running_loss = []
     pbar = tqdm(train_dataloader, desc='epoch {}'.format(epoch), unit='iter')
     for batch, (x, y) in enumerate(pbar):
 
-        x = x.to(args.device)
-        y = y.to(args.device).unsqueeze(1)
+        x = x.to(args["device"])
+        y = y.to(args["device"]).unsqueeze(1)
 
         optimizer.zero_grad()
         with torch.cuda.amp.autocast(fp16_scaler is not None):
@@ -114,8 +70,8 @@ def validate_epoch(model, val_dataloader, args, criterion):
 
     running_loss, y_true, y_pred = [], [], []
     for x, y in val_dataloader:
-        x = x.to(args.device)
-        y = y.to(args.device).unsqueeze(1)
+        x = x.to(args["device"])
+        y = y.to(args["device"]).unsqueeze(1)
 
         outputs = model(x)
         loss = criterion(outputs, y)
@@ -140,47 +96,63 @@ def validate_epoch(model, val_dataloader, args, criterion):
 
 # MAIN def
 def main():
+    
+    # add parser for obtaining configuration file:
+    parser = argparse.ArgumentParser(description='Evaluation Arguments')
+
+    parser.add_argument('-cf', '--conf_file', metavar='conf_file', required=True, type=str,
+                         help='Configuration yaml file for the script.')
+
+    parser_args = vars(parser.parse_args())
+    # print(parser_args[0])
+
+    # obtain configuration file:
+    cf_file = parser_args["conf_file"]
+
+    # initialize args
+    with open(cf_file, 'r') as stream:
+        args=yaml.safe_load(stream)
 
     # initialize weights and biases:
-    wandb.init(project=args.project_name, name=args.name,
-               config=vars(args), group=args.group, save_code=True)
+    wandb.init(project=args["project_name"], name=args["name"],
+               config=args, group=args["group"], save_code=True, mode=args["mode"])
 
     # initialize model:
-    if args.model == 'resnet50':
-        model = timm.create_model('resnet50', drop_path_rate=0.1, pretrained=True, num_classes=1)
-    elif args.model == 'swin-tiny':
-        model = timm.create_model('swin_tiny_patch4_window7_224', drop_path_rate=0.1, pretrained=True, num_classes=1)
-    elif args.model == 'swin-small':
-        model = timm.create_model('swin_small_patch4_window7_224', drop_path_rate=0.1, pretrained=True, num_classes=1)
-    elif args.model == 'vit-tiny':
-        model = timm.create_model('vit_tiny_patch16_224', drop_path_rate=0.1, pretrained=True, num_classes=1)
-    elif args.model == 'vit-small':
-        model = timm.create_model('vit_small_patch16_224', drop_path_rate=0.1, pretrained=True, num_classes=1)
-    elif args.model == 'xception':
-        model = timm.create_model('xception', pretrained=True, num_classes=1)
+    if args["model"] == 'resnet50':
+        model = timm.create_model('resnet50', drop_path_rate=0.1, pretrained=args["pretrained"], num_classes=1)
+    elif args["model"] == 'swin-tiny':
+        model = timm.create_model('swin_tiny_patch4_window7_224', drop_path_rate=0.1, pretrained=args["pretrained"], num_classes=1)
+    elif args["model"] == 'swin-small':
+        model = timm.create_model('swin_small_patch4_window7_224', drop_path_rate=0.1, pretrained=args["pretrained"], num_classes=1)
+    elif args["model"] == 'vit-tiny':
+        model = timm.create_model('vit_tiny_patch16_224', drop_path_rate=0.1, pretrained=args["pretrained"], num_classes=1)
+    elif args["model"] == 'vit-small':
+        model = timm.create_model('vit_small_patch16_224', drop_path_rate=0.1, pretrained=args["pretrained"], num_classes=1)
+    elif args["model"] == 'xception':
+        model = timm.create_model('xception', pretrained=args["pretrained"], num_classes=1)
     else:
         raise Exception('Model architecture not supported.')
 
-    model = model.to(args.device)
+    model = model.to(args["device"])
 
-    train_transforms = augmentations.get_training_augmentations(args.aug)
+    train_transforms = augmentations.get_training_augmentations(args["aug"])
     valid_transforms = augmentations.get_validation_augmentations()
 
     # set the paths for training
-    train_dataset = pytorch_dataset.dataset2(
-        args.dataset_dir, args.train_dir, train_transforms)
-    val_dataset = pytorch_dataset.dataset2(
-        args.dataset_dir, args.valid_dir, valid_transforms)
+    train_dataset = pytorch_dataset.dataset(
+        args["train_dir"], train_transforms)
+    val_dataset = pytorch_dataset.dataset(
+        args["valid_dir"], valid_transforms)
 
     # defining data loaders:
     train_dataloader = DataLoader(
-        train_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=True)
+        train_dataset, num_workers=args["workers"], batch_size=args["batch_size"], shuffle=True)
     val_dataloader = DataLoader(
-        val_dataset, num_workers=args.workers, batch_size=args.batch_size, shuffle=False)
+        val_dataset, num_workers=args["workers"],batch_size=args["batch_size"], shuffle=False)
 
     # setting the optimizer:
     optimizer = torch.optim.AdamW(
-        model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay)
+        model.parameters(), lr=args["learning_rate"], weight_decay=args["weight_decay"])
 
     # setting the scheduler:
     scheduler = torch.optim.lr_scheduler.StepLR(
@@ -189,11 +161,11 @@ def main():
     criterion = nn.BCEWithLogitsLoss()
 
     fp16_scaler = None
-    if args.fp16 is not None:
+    if args["fp16"] is not None:
         fp16_scaler = torch.cuda.amp.GradScaler()
 
     # directory:
-    save_dir = args.save_dir
+    save_dir = args["save_dir"]
     print(save_dir)
 
     if not os.path.exists(save_dir):
@@ -202,7 +174,7 @@ def main():
     # set value for min-loss:
     min_loss, val_results = float('inf'), {}
     print('Training starts...')
-    for epoch in range(args.epochs):
+    for epoch in range(args["epochs"]):
 
         wandb.log({'epoch': epoch})
         train_epoch(model, train_dataloader=train_dataloader, args=args, optimizer=optimizer, criterion=criterion,
