@@ -110,7 +110,8 @@ def main():
         raise Exception('Model architecture not supported.')
 
     # load weights:
-    model.load_state_dict(torch.load(args["weights_dir"], map_location='cpu'))
+    if args["model"]!='ensemble':
+        model.load_state_dict(torch.load(args["weights_dir"], map_location='cpu'))
 
     model = model.eval().to(args["device"])
 

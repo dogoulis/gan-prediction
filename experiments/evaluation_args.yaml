@@ -1,0 +1,20 @@
+---
+# w&b
+project_name: 'TRAIN_SAR'
+name: 'ensemble-eval'
+group: 
+mode: 'online'
+
+# dataset
+test_dir: '../csv/test_sarr.csv'
+
+# model
+model: 'ensemble'
+batch_size: '32'
+
+
+# weights
+weights_dir: ''
+service_model: ''
+workers: 2
+device: 'mps'
