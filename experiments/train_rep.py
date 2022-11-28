@@ -124,7 +124,7 @@ def main():
     parser.add_argument('-cf', '--conf_file', metavar='conf_file', required=True, type=str,
                          help='Configuration yaml file for the script.')
 
-    parser_args = parser.parse_args()
+    parser_args = vars(parser.parse_args())
 
     # obtain configuration file:
     cf_file = parser_args["conf_file"]
