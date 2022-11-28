@@ -33,11 +33,11 @@ def testing(model, dataloader, criterion, args):
         x = x.to(args["device"])
         y = y.to(args["device"]).unsqueeze(1)
 
-        outputs = model(x)
+        outputs = model(x) # add .unsqueeze(1) if model=='ensemble'
         loss = criterion(outputs, y)
 
         running_loss.append(loss.cpu().numpy())
-        outputs = torch.sigmoid(outputs)
+        outputs = torch.sigmoid(outputs) # comment this line if model=='ensemble'
         y_true.append(y.squeeze(1).cpu().int())
         y_pred.append(outputs.squeeze(1).cpu())
     wandb.log({'Loss': np.mean(running_loss)})
