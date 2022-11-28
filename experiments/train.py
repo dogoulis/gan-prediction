@@ -104,7 +104,6 @@ def main():
                          help='Configuration yaml file for the script.')
 
     parser_args = vars(parser.parse_args())
-    # print(parser_args[0])
 
     # obtain configuration file:
     cf_file = parser_args["conf_file"]
