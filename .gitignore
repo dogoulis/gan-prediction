@@ -42,3 +42,6 @@ scripts/giqa_test.sh
 data/testing
 scripts/animal_faces.sh
 scripts/metafaces_test.sh
+interpretability/
+evaluation_args.yaml
+.DS_STORE
