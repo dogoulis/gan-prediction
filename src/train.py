@@ -20,7 +20,7 @@ import wandb
 
 from torch.utils.data.dataloader import DataLoader
 from dataset import pytorch_dataset, augmentations
-from folders_to_csv import CreateFile
+from dataset.folders_to_csv import CreateFile
 
 # define training logic
 def train_epoch(model, train_dataloader, args, optimizer, criterion, scheduler=None,

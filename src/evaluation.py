@@ -22,7 +22,7 @@ import wandb
 from dataset import pytorch_dataset, augmentations
 from torch.utils.data.dataloader import DataLoader
 from torchmetrics import functional as tmf
-from gan_ensemble import GanEnsemble
+from src.gan_ensemble import GanEnsemble
 
 @torch.no_grad()
 def testing(model, dataloader, criterion, args):
