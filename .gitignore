@@ -1,6 +1,4 @@
 *.ipynb
-experiments/dataset/__pycache__
 .vscode/
-interpretability/
 .DS_STORE
 __pycache__
