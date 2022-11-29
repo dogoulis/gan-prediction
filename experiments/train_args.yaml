@@ -1,18 +1,20 @@
 ---
 # w&b
-project_name: ''
-name: ''
-group: ''
-mode: 'online' # online, offline, disabled
+project_name: 'test'
+name: 'test'
+group: 'test'
+mode: 'disabled' # online, offline, disabled
 
 # dataset
-train_dir: ''
-valid_dir: ''
-aug: 'wang'
+folders: {'/Users/pantelisdogoulis/Desktop/tumor_detection/brain/yes': 1,
+'/Users/pantelisdogoulis/Desktop/tumor_detection/brain/no': 0,}
+split_list: [20, 30]
+path_to_save: 'yo' # this is the path that the folder containing the csv's will be saved
+aug: 'geometric'
 
 # model
 model: 'resnet50'
-epochs: 2
+epochs: 1
 batch_size: 32
 learning_rate: 0.0001
 weight_decay: 0.0005
@@ -21,7 +23,7 @@ pretrained: False
 
 # weights
 
-save_dir: ''
+save_dir: './'
 workers: 8
 fp16: 'yes' # if None then it does not implement with fp16
 device: 'cpu'

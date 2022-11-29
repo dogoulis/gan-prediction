@@ -20,6 +20,7 @@ import wandb
 
 from torch.utils.data.dataloader import DataLoader
 from dataset import pytorch_dataset, augmentations
+from folders_to_csv import CreateFile
 
 # define training logic
 def train_epoch(model, train_dataloader, args, optimizer, criterion, scheduler=None,
@@ -69,7 +70,7 @@ def validate_epoch(model, val_dataloader, args, criterion):
     model.eval()
 
     running_loss, y_true, y_pred = [], [], []
-    for x, y in val_dataloader:
+    for x, y in tqdm(val_dataloader):
         x = x.to(args["device"])
         y = y.to(args["device"]).unsqueeze(1)
 
@@ -134,14 +135,20 @@ def main():
 
     model = model.to(args["device"])
 
+    # DATASET:
+
     train_transforms = augmentations.get_training_augmentations(args["aug"])
     valid_transforms = augmentations.get_validation_augmentations()
 
+    create_csv = CreateFile(folders=args["folders"], split_list=args["split_list"], path_to_save=args["path_to_save"])
+    
+    create_csv.images_to_csv()
+
     # set the paths for training
     train_dataset = pytorch_dataset.dataset(
-        args["train_dir"], train_transforms)
+        os.path.join(args["path_to_save"], 'train.csv') , train_transforms)
     val_dataset = pytorch_dataset.dataset(
-        args["valid_dir"], valid_transforms)
+        os.path.join(args["path_to_save"], 'val.csv') , valid_transforms)
 
     # defining data loaders:
     train_dataloader = DataLoader(
