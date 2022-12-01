@@ -20,27 +20,31 @@ class CreateFile():
         self.split_list = split_list # list with the sizes to split the dataframes. 0 -> test_size, 1 -> train_size
 
 
-    def images_to_csv(self):
+    def images_to_csv(self, flag=False):
+        
+        if flag:
+            pass
 
-        data_frames = [] # list that consists of all the dataframes
+        else:
+            data_frames = [] # list that consists of all the dataframes
 
-        # first turn images to pd.Dataframe:
-        for folder_path, folder_label in self.folders.items():
-            df = self._images_to_df(path=folder_path, label_number=folder_label)
-            data_frames.append(df)
+            # first turn images to pd.Dataframe:
+            for folder_path, folder_label in self.folders.items():
+                df = self._images_to_df(path=folder_path, label_number=folder_label)
+                data_frames.append(df)
 
-        final_df = self._concat_df(data_frames) # then concatenate the dataframes in to a single one
+            final_df = self._concat_df(data_frames) # then concatenate the dataframes in to a single one
 
-        train_csv, val_csv, test_csv = self._train_test_split(final_df, \
-                    test_size=self.split_list[0], train_size=self.split_list[1]) # then split in to training validation and test sets:
+            train_csv, val_csv, test_csv = self._train_test_split(final_df, \
+                        test_size=self.split_list[0], train_size=self.split_list[1]) # then split in to training validation and test sets:
 
-        # check if path exists:
-        if not os.path.exists(self.path_to_save):
-            os.makedirs(self.path_to_save)
+            # check if path exists:
+            if not os.path.exists(self.path_to_save):
+                os.makedirs(self.path_to_save)
 
-        train_csv.to_csv(os.path.join(self.path_to_save, 'train.csv'))
-        val_csv.to_csv(os.path.join(self.path_to_save, 'val.csv'))
-        test_csv.to_csv(os.path.join(self.path_to_save, 'test.csv')) # then save the csv    
+            train_csv.to_csv(os.path.join(self.path_to_save, 'train.csv'))
+            val_csv.to_csv(os.path.join(self.path_to_save, 'val.csv'))
+            test_csv.to_csv(os.path.join(self.path_to_save, 'test.csv')) # then save the csv    
 
     def _images_to_df(self, path, label_number):
 

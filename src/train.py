@@ -142,12 +142,19 @@ def main():
 
     create_csv = CreateFile(folders=args["folders"], split_list=args["split_list"], path_to_save=args["path_to_save"])
     
-    create_csv.images_to_csv()
+    create_csv.images_to_csv(flag=args["flag"])
 
-    # set the paths for training
-    train_dataset = pytorch_dataset.dataset(
+    if args["flag"]:
+        # set the paths for training
+        train_dataset = pytorch_dataset.dataset(
+            args["train_dir"], train_transforms)
+        val_dataset = pytorch_dataset.dataset(
+            args["val_dir"], valid_transforms)
+    else:
+        # set the paths for training
+        train_dataset = pytorch_dataset.dataset(
         os.path.join(args["path_to_save"], 'train.csv') , train_transforms)
-    val_dataset = pytorch_dataset.dataset(
+        val_dataset = pytorch_dataset.dataset(
         os.path.join(args["path_to_save"], 'val.csv') , valid_transforms)
 
     # defining data loaders:
@@ -171,7 +178,7 @@ def main():
         fp16_scaler = torch.cuda.amp.GradScaler()
 
     # directory:
-    save_dir = args["save_dir"]
+    save_dir = args["save_dir"] +args["name"]
     print(save_dir)
 
     if not os.path.exists(save_dir):
@@ -190,7 +197,7 @@ def main():
         if val_results['val_loss'] < min_loss:
             min_loss = val_results['val_loss'].copy()
             torch.save(model.state_dict(), os.path.join(
-                save_dir, 'best-ckpt.pt'))
+                save_dir,'best-ckpt.pt'))
 
 
 if __name__ == '__main__':
